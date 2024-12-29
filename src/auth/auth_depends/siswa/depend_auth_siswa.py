@@ -46,7 +46,7 @@ async def siswaDependAuth(access_token: str | None = Cookie(None), Authorization
             raise HttpException(status=401, message="invalid token(unauthorized)")
         
         # Create a select query to find the student in the database
-        selectQuery = select(Siswa.id, Siswa.nama, Siswa.token_FCM, Siswa.id_sekolah,Siswa.id_dudi,Siswa.id_pembimbing_dudi,Siswa.id_guru_pembimbing).where(Siswa.id == siswa["id"])
+        selectQuery = select(Siswa.id, Siswa.nama, Siswa.token_FCM, Siswa.id_sekolah).where(Siswa.id == siswa["id"])
         exec = await Session.execute(selectQuery)
         findSiswa = exec.first()
 

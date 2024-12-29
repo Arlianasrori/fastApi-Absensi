@@ -10,7 +10,7 @@ from ...schemas.jadwal_schema import JadwalBase,JadwalDetail
 from .jadwalSchema import AddJadwalRequest,UpdateJadwalRequest,ResponseJadwalPag,FilterJadwalQuery
 
 # common
-from ..common.validation_jadwal import validateJadwal
+from ...common.validation_jadwal import validateJadwal
 import math
 from copy import deepcopy
 from ....utils.generateId_util import generate_id
