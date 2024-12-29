@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select,and_
 
-from ....models.jadwal_model import Jadwal,HariEnum
+from ...models.jadwal_model import Jadwal,HariEnum
 from datetime import time
-from ....error.errorHandling import HttpException
+from ...error.errorHandling import HttpException
 
 async def validateJadwal(jam_mulai : time,jam_selesai : time,id_kelas : int,hari : HariEnum, id_sekolah : int,id_tahun : int,session : AsyncSession) -> None:
     if jam_mulai >= jam_selesai :
