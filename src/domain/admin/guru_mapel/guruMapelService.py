@@ -54,6 +54,7 @@ async def addGuruMapel(id_sekolah : int,guruMapel : AddGuruMapelRequest,alamat :
     alamatMapping.update({"id_guru_mapel" : guruMapelMapping["id"]})
     session.add(GuruMapel(**guruMapelMapping,alamat = AlamatGuruMapel(**alamatMapping)))
     await session.commit()
+    await session.refresh(findMapel)
     
     return {
         "msg" : "success",

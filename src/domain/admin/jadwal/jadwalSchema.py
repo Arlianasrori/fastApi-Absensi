@@ -7,6 +7,7 @@ from ....models.jadwal_model import HariEnum
 class AddJadwalRequest(BaseModel) :
     id_mapel : int
     id_kelas : int
+    id_guru_mapel : int
     hari : HariEnum
     jam_mulai : time
     jam_selesai : time
