@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from .siswa_schema import SiswaBase
 from datetime import date,time
 from ...models.absen_model import StatusAbsenEnum
+
 class AbsenDetailBase(BaseModel) :
     id : int
     id_absen : int
@@ -15,6 +16,7 @@ class AbsenBase(BaseModel) :
     jam : time
     file : str
     status : StatusAbsenEnum
+    diterima : bool
 
 class AbsenWithSiswaDetail(AbsenBase) :
     siswa : SiswaBase

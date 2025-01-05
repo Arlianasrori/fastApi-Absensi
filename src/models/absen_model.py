@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Date,Time, Enum, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, Date,Time, Enum, Float, Boolean
 from sqlalchemy.orm import relationship
 from ..db.db import Base
 import enum
@@ -33,6 +33,7 @@ class Absen(Base):
     jam = Column(Time, nullable=False)
     file = Column(String, nullable=False)
     status = Column(Enum(StatusAbsenEnum), nullable=False)
+    diterima = Column(Boolean,nullable=False, default=False)
 
     jadwal = relationship("Jadwal", back_populates="absen")
     siswa = relationship("Siswa", back_populates="absen")
