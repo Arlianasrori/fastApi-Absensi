@@ -9,6 +9,7 @@ class FilterAbsenQuery(BaseModel) :
     hari : HariEnum | None = None
     tanggal_mulai : date | None = None
     tanggal_selesai : date | None = None
+    diterima : bool = None
 
 class ResponseAbsenPag(PaginationBase) :
     data : list[AbsenWithSiswaDetail] = []
