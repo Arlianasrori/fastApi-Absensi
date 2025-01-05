@@ -30,6 +30,7 @@ class GuruMapel(Base):
     sekolah = relationship("Sekolah", back_populates="guru_mapel")
     tahun = relationship("TahunSekolah", back_populates="guru_mapel")
     mapel = relationship("Mapel", back_populates="guru_mapel")
+    jadwal = relationship("Jadwal", back_populates="guru_mapel")
     laporan = relationship("LaporanGuruMapel", back_populates="guru_mapel")
     laporan_BK = relationship("LaporanPetugasBK", back_populates="guru_mapel")
 

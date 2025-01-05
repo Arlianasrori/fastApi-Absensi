@@ -35,6 +35,7 @@ class Jadwal(Base):
 
     id = Column(Integer, primary_key=True)
     id_mapel = Column(Integer, ForeignKey('mapel.id'), nullable=False)
+    id_guru_mapel = Column(Integer, ForeignKey('guru_mapel.id'), nullable=False)
     id_kelas = Column(Integer, ForeignKey('kelas.id'), nullable=False)
     id_tahun = Column(Integer, ForeignKey('tahun_sekolah.id'), nullable=False)
     id_sekolah = Column(Integer, ForeignKey('sekolah.id'), nullable=False)
@@ -43,6 +44,7 @@ class Jadwal(Base):
     jam_selesai = Column(Time, nullable=False)
 
     mapel = relationship("Mapel", back_populates="jadwal")
+    guru_mapel = relationship("GuruMapel", back_populates="jadwal")
     kelas = relationship("Kelas", back_populates="jadwal")
     tahun = relationship("TahunSekolah", back_populates="jadwal")
     sekolah = relationship("Sekolah", back_populates="jadwal")
