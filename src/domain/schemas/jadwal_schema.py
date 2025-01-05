@@ -11,6 +11,10 @@ class JadwalBase(BaseModel):
     jam_mulai : time
     jam_selesai : time
 
+class JadwalWithMapelGuruMapel(JadwalBase) :
+    mapel : MapelBase
+    guru_mapel : GuruMapelBase
+    
 class JadwalDetail(JadwalBase):
     mapel : MapelBase
     kelas : KelasBase
