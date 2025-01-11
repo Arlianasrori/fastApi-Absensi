@@ -12,7 +12,7 @@ class LaporanSiswa(Base):
     datetime = Column(DateTime, nullable=False)
 
     siswa = relationship("Siswa", back_populates="laporan")
-    file = relationship("FileLaporanSiswa", back_populates="laporan")
+    file = relationship("FileLaporanSiswa", back_populates="laporan",cascade="all")
 
     def __repr__(self):
         return f"<LaporanSiswa(id={self.id}, siswa='{self.siswa}')>"
@@ -27,7 +27,7 @@ class FileLaporanSiswa(Base):
     laporan = relationship("LaporanSiswa", back_populates="file")
 
     def __repr__(self):
-        return f"<FileLaporanSiswa(id={self.id}, laporan='{self.laporan}')>"
+        return f"<FileLaporanSiswa(id={self.id}')>"
     
 # guru walas
 class LaporanGuruWalas(Base):

@@ -1,6 +1,7 @@
 import os 
 
-async def deleteImageList(fileList : list[dict],FILE_LAPORAN_STORE : str) :
+def deleteImageList(fileList : list[dict],FILE_LAPORAN_STORE : str) :
+    print("fileList")
     for fileLaporanItem in fileList :
         file_nama_db_split = fileLaporanItem.file.split("/")
         file_name_db = file_nama_db_split[-1]
