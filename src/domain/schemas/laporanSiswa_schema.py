@@ -8,6 +8,8 @@ class LaporanSiswaBase(BaseModel):
     catatan : str
     datetime : datetime
 
+class LaporanSiswaWithFile(LaporanSiswaBase) :
+    file : list[FileLaporanBase] | None = None
 class LaporanSiswaDetail(LaporanSiswaBase):
     siswa : SiswaBase
     file : list[FileLaporanBase] | None = None

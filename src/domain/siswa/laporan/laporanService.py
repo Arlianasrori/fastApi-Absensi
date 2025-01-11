@@ -1,13 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
-from sqlalchemy.orm import joinedload
+from sqlalchemy import select, and_, extract
+from sqlalchemy.orm import joinedload, subqueryload
 from fastapi import UploadFile
 
 # models 
 from ....models.laporan_model import LaporanSiswa, FileLaporanSiswa
 # schemas
 from .laporanSchema import FilterQueryLaporan, AddLaporanSiswaRequest,UpdateLaporanSiswaRequest
-from ...schemas.laporanSiswa_schema import LaporanSiswaBase,LaporanSiswaDetail
+from ...schemas.laporanSiswa_schema import LaporanSiswaBase,LaporanSiswaDetail,LaporanSiswaWithFile
 # common
 from ....error.errorHandling import HttpException
 from datetime import datetime
@@ -22,10 +22,8 @@ from ...schemas.response_schema import MessageOnlyResponse
 from ....utils.updateTable_util import updateTable
 
 async def getAllLaporan(siswa : dict,query : FilterQueryLaporan,session : AsyncSession) -> list[LaporanSiswaBase] :
-    now = datetime.now()
-    startQuery = datetime(query.year if query.year else now.year, query.month if query.month else 1, 1,00,00,00)
-    endQuery = datetime(query.year if query.year else now.year, query.month if query.month else 12, 31,12,60,60)
-    findLaporan = (await session.execute(select(LaporanSiswa).where(and_(LaporanSiswa.id_siswa == siswa["id"],LaporanSiswa.datetime >= startQuery,LaporanSiswa.datetime <= endQuery)))).scalars().all()
+    findLaporan = (await session.execute(select(LaporanSiswa).where(and_(LaporanSiswa.id_siswa == siswa["id"],extract('year', LaporanSiswa.datetime) == query.year if query.year else True,
+    extract('month', LaporanSiswa.datetime) == query.month if query.month else True)))).scalars().all()
 
     return {
         "msg" : "success",
@@ -33,7 +31,7 @@ async def getAllLaporan(siswa : dict,query : FilterQueryLaporan,session : AsyncS
     }
 
 async def getLaporanById(id : int,session : AsyncSession) -> LaporanSiswaDetail :
-    findLaporan = (await session.execute(select(LaporanSiswa).options(joinedload(LaporanSiswa.siswa),joinedload(LaporanSiswa.file)).where(LaporanSiswa.id == id))).scalar_one_or_none()
+    findLaporan = (await session.execute(select(LaporanSiswa).options(joinedload(LaporanSiswa.siswa),subqueryload(LaporanSiswa.file)).where(LaporanSiswa.id == id))).scalar_one_or_none()
     if not findLaporan :
         raise HttpException(404,f"laporan tidak ditemukan")
 
@@ -54,9 +52,9 @@ async def addLaporan(id_siswa : int,laporan : AddLaporanSiswaRequest,session : A
         "data" : laporanMapping
     }
 
-FILE_LAPORAN_STORE = os.getenv("DEV_PKL_SISWA")
-FILE_LAPORAN_BASE_URL = os.getenv("DEV_SISWA_BASE_URL")
-async def addFileLaporan(id_siswa : int,id_laporan : int,file : UploadFile,session : AsyncSession) -> LaporanSiswaDetail :
+FILE_LAPORAN_STORE = os.getenv("DEV_LAPORAN_SISWA_STORE")
+FILE_LAPORAN_BASE_URL = os.getenv("DEV_LAPORAN_SISWA_BASE_URL")
+async def addFileLaporan(id_siswa : int,id_laporan : int,file : UploadFile,session : AsyncSession) -> LaporanSiswaWithFile :
     findLaporanPkl = (await session.execute(select(LaporanSiswa).where(and_(LaporanSiswa.id == id_laporan,LaporanSiswa.id_siswa == id_siswa)))).scalar_one_or_none()
 
     if not findLaporanPkl :
@@ -74,14 +72,14 @@ async def addFileLaporan(id_siswa : int,id_laporan : int,file : UploadFile,sessi
     async with aiofiles.open(file_name_save, "wb") as f:
         await f.write(file.file.read())
         fileMapping = {"id" : generate_id(),"id_laporan" : id_laporan,"file" : f"{FILE_LAPORAN_BASE_URL}/{file_name}"}
-        await session.add(FileLaporanSiswa(**fileMapping))
+        session.add(FileLaporanSiswa(**fileMapping))
     
     laporanPklDictCopy = deepcopy(findLaporanPkl.__dict__)
     await session.commit()
 
     return {
         "msg" : "success",
-        "data" : {**laporanPklDictCopy,file : [fileMapping]}
+        "data" : {**laporanPklDictCopy,"file" : [fileMapping]}
     }
 
 async def deleteFileLaporan(id_siswa : int,id_file : int,session : AsyncSession) -> MessageOnlyResponse :
@@ -89,9 +87,9 @@ async def deleteFileLaporan(id_siswa : int,id_file : int,session : AsyncSession)
 
     if not findFileLaporan :
         raise HttpException(404,f"file laporan tidak ditemukan")
-    
+    print("tes")
     fileUrlCopy = findFileLaporan.file
-    session.delete(findFileLaporan)
+    await session.delete(findFileLaporan)
     await session.commit()
     proccess = Process(target=deleteImage,args=(fileUrlCopy,FILE_LAPORAN_STORE))
     proccess.start()
@@ -101,7 +99,9 @@ async def deleteFileLaporan(id_siswa : int,id_file : int,session : AsyncSession)
     }
 
 async def deleteLaporan(id_siswa : int,id_laporan : int,session : AsyncSession) -> LaporanSiswaDetail :
-    findLaporan = (await session.execute(select(LaporanSiswa).options(joinedload(LaporanSiswa.file)).where(and_(LaporanSiswa.id == id_laporan,LaporanSiswa.id_siswa == id_siswa)))).scalar_one_or_none()
+    findLaporan = (await session.execute(select(LaporanSiswa).options(joinedload(LaporanSiswa.siswa),subqueryload(LaporanSiswa.file)).where(LaporanSiswa.id == id_laporan))).scalar_one_or_none()
+
+    print(findLaporan)
 
     if not findLaporan :
         raise HttpException(404,f"laporan tidak ditemukan")
@@ -127,10 +127,11 @@ async def updateLaporan(id_siswa : int,id_laporan : int,laporan : UpdateLaporanS
         raise HttpException(404,f"laporan tidak ditemukan")
 
     if laporan :
-        updateTable(findLaporan,laporan)
-        await session.commit()
+        updateTable(laporan,findLaporan)
 
     laporanDictCopy = deepcopy(findLaporan.__dict__)
+    await session.commit()
+    print(laporanDictCopy)
     return {
         "msg" : "success",
         "data" : laporanDictCopy

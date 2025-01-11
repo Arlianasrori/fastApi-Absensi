@@ -10,9 +10,7 @@ from ...schemas.absen_schema import KoordinatAbsenKelasBase, KoordinatAbsenDetai
 from ....error.errorHandling import HttpException
 
 async def getAllKoordinat(siswa : dict,session : AsyncSession) -> KoordinatAbsenKelasBase :
-    findKoordinatAbsen = (await session.execute(select(KoordinatAbsenKelas).where(and_(KoordinatAbsenKelas.id_kelas == siswa["id_kelas"])))).scalar_one_or_none()
-    if not findKoordinatAbsen :
-        raise HttpException(404,f"siswa tidak ditemukan")
+    findKoordinatAbsen = (await session.execute(select(KoordinatAbsenKelas).where(and_(KoordinatAbsenKelas.id_kelas == siswa["id_kelas"])))).scalars().all()
 
     return {
         "msg" : "success",
@@ -22,7 +20,7 @@ async def getAllKoordinat(siswa : dict,session : AsyncSession) -> KoordinatAbsen
 async def getKoordinatById(id : int,session : AsyncSession) -> KoordinatAbsenDetail :
     findKoordinat = (await session.execute(select(KoordinatAbsenKelas).options(joinedload(KoordinatAbsenKelas.kelas)).where(KoordinatAbsenKelas.id == id))).scalar_one_or_none()
     if not findKoordinat :
-        raise HttpException(404,f"siswa tidak ditemukan")
+        raise HttpException(404,f"koordinat tidak ditemukan")
 
     return {
         "msg" : "success",
