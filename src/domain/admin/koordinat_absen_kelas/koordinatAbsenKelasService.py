@@ -6,7 +6,7 @@ from ....models.absen_model import KoordinatAbsenKelas
 from ....models.siswa_model import Kelas, Jurusan
 # schemas
 from .koordinatAbsenKelasSchema import FilterKoordinatAbsenKelasQuery,ResponseKoordinatAbsenKelasPag
-from ...schemas.absen_schema import KoordinatAbsenKelasBase
+from ...schemas.koordinatAbsen_schema import KoordinatAbsenKelasBase
 # common
 import math
 from ....error.errorHandling import HttpException

@@ -39,7 +39,7 @@ class LaporanGuruWalas(Base):
     datetime = Column(DateTime, nullable=False)
 
     guru_walas = relationship("GuruWalas", back_populates="laporan")
-    file = relationship("FileLaporanGuruWalas", back_populates="laporan")
+    file = relationship("FileLaporanGuruWalas", back_populates="laporan",cascade="all")
 
     def __repr__(self):
         return f"<LaporanGuruWalas(id={self.id}, guru_walas='{self.guru_walas}')>"
@@ -66,7 +66,7 @@ class LaporanGuruMapel(Base):
     datetime = Column(DateTime, nullable=False)
 
     guru_mapel = relationship("GuruMapel", back_populates="laporan")
-    file = relationship("FileLaporanGuruMapel", back_populates="laporan")
+    file = relationship("FileLaporanGuruMapel", back_populates="laporan",cascade="all")
 
     def __repr__(self):
         return f"<LaporanGuruMapel(id={self.id}, guru_mapel='{self.guru_mapel}')>"
@@ -97,7 +97,7 @@ class LaporanPetugasBK(Base):
     petugas_BK = relationship("PetugasBK", back_populates="laporan")
     guru_walas = relationship("GuruWalas", back_populates="laporan_BK")
     guru_mapel = relationship("GuruMapel", back_populates="laporan_BK")
-    file = relationship("FileLaporanPetugasBK", back_populates="laporan")
+    file = relationship("FileLaporanPetugasBK", back_populates="laporan",cascade="all")
 
     def __repr__(self):
         return f"<LaporanPetugasBK(id={self.id}, petugas_BK='{self.petugas_BK}')>"

@@ -11,6 +11,11 @@ class StatusAbsenEnum(enum.Enum):
     sakit = "sakit"
     dispen = "dispen"
 
+class StatusTinjauanEnum(enum.Enum) :
+    diterima = "diterima"
+    ditolak = "ditolak"
+    belum_ditinjau = "belum_ditinjau"
+
 class KoordinatAbsenKelas(Base) :
     __tablename__ = 'koordinat_absen_kelas'
 
@@ -22,6 +27,7 @@ class KoordinatAbsenKelas(Base) :
     radius_absen_meter = Column(Float)
 
     kelas = relationship("Kelas", back_populates="koordinat_absen")
+    jadwal = relationship("Jadwal", back_populates="koordinat")
 
 class Absen(Base):
     __tablename__ = 'absen'
@@ -33,7 +39,6 @@ class Absen(Base):
     jam = Column(Time, nullable=False)
     file = Column(String, nullable=False)
     status = Column(Enum(StatusAbsenEnum), nullable=False)
-    diterima = Column(Boolean,nullable=False, default=False)
 
     jadwal = relationship("Jadwal", back_populates="absen")
     siswa = relationship("Siswa", back_populates="absen")
@@ -48,8 +53,12 @@ class AbsenDetail(Base):
     id = Column(Integer, primary_key=True)
     id_absen = Column(Integer, ForeignKey('absen.id'), nullable=False)
     catatan = Column(String, nullable=False)
+    diterima = Column(Enum(StatusTinjauanEnum),nullable=True, default=StatusTinjauanEnum.belum_ditinjau.value)
+    id_peninjau = Column(Integer, ForeignKey('petugas_BK.id'), nullable=True)
+    tanggal_peninjau = Column(Date, nullable=True)
 
     absen = relationship("Absen", back_populates="detail")
+    petugas_bk = relationship("PetugasBK", back_populates="absen_detail")
 
     def __repr__(self):
         return f"<AbsenDetail(id={self.id}, id_absen='{self.id_absen}', catatan='{self.catatan}')>"

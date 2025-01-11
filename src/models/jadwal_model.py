@@ -39,6 +39,7 @@ class Jadwal(Base):
     id_kelas = Column(Integer, ForeignKey('kelas.id'), nullable=False)
     id_tahun = Column(Integer, ForeignKey('tahun_sekolah.id'), nullable=False)
     id_sekolah = Column(Integer, ForeignKey('sekolah.id'), nullable=False)
+    id_koordinat = Column(Integer, ForeignKey('koordinat_absen_kelas.id'), nullable=False)
     hari = Column(Enum(HariEnum), nullable=False)
     jam_mulai = Column(Time, nullable=False)
     jam_selesai = Column(Time, nullable=False)
@@ -48,7 +49,8 @@ class Jadwal(Base):
     kelas = relationship("Kelas", back_populates="jadwal")
     tahun = relationship("TahunSekolah", back_populates="jadwal")
     sekolah = relationship("Sekolah", back_populates="jadwal")
-    absen = relationship("Absen", back_populates="jadwal")  
+    absen = relationship("Absen", back_populates="jadwal") 
+    koordinat = relationship("KoordinatAbsenKelas", back_populates="jadwal")   
 
     def __repr__(self):
         return f"<Jadwal(id={self.id} , mapel='{self.mapel}', kelas='{self.kelas}', tahun='{self.tahun}')>"
