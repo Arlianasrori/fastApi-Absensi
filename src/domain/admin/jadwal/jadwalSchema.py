@@ -11,6 +11,7 @@ class AddJadwalRequest(BaseModel) :
     hari : HariEnum
     jam_mulai : time
     jam_selesai : time
+    id_koordinat : int
 
 class UpdateJadwalRequest(BaseModel) :
     hari : HariEnum | None = None

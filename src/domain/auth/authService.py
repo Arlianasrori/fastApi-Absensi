@@ -153,7 +153,7 @@ async def publicLogin(auth : LoginRequest,Res : Response,session : AsyncSession)
         isPassword = verify_hash_password(auth.password,findPetugasBK.password)
 
         if isPassword :
-            token_payload = {"id" : findGuruMapel.id}
+            token_payload = {"id" : findPetugasBK.id}
 
             token = create_token(token_payload,EnvSecretTokenType.PETUGAS_BK)
             Res.set_cookie("access_token",token["access_token"])

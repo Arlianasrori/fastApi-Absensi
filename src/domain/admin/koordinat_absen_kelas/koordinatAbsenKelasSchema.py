@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from ....domain.schemas.absen_schema import KoordinatAbsenKelasBase
+from ....domain.schemas.koordinatAbsen_schema import KoordinatAbsenKelasBase
 from ....domain.schemas.pagination_schema import PaginationBase
 
 class FilterKoordinatAbsenKelasQuery(BaseModel) :

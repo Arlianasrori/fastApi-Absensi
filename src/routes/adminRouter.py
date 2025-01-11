@@ -77,7 +77,7 @@ from ..domain.schemas.absen_schema import AbsenWithSiswaDetail
 # koodinat absen
 from ..domain.admin.koordinat_absen_kelas import koordinatAbsenKelasService
 from ..domain.admin.koordinat_absen_kelas.koordinatAbsenKelasSchema import FilterKoordinatAbsenKelasQuery,ResponseKoordinatAbsenKelasPag
-from ..domain.schemas.absen_schema import KoordinatAbsenKelasBase
+from ..domain.schemas.koordinatAbsen_schema import KoordinatAbsenKelasBase
 
 # auth depends
 from ..auth.auth_depends.admin.depend_auth_admin import adminAuth

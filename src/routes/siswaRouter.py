@@ -15,7 +15,7 @@ from ..auth.auth_depends.siswa.get_siswa_auth import getSiswaAuth
 
 # koordinat-absen
 from ..domain.siswa.koordinat_absen import koordinatAbsenService
-from ..domain.schemas.absen_schema import KoordinatAbsenKelasBase, KoordinatAbsenDetail
+from ..domain.schemas.koordinatAbsen_schema import KoordinatAbsenKelasBase, KoordinatAbsenDetail
 
 
 # laporan siswa

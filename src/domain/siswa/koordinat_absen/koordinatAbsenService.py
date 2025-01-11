@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 # models 
 from ....models.absen_model import KoordinatAbsenKelas
 # schemas
-from ...schemas.absen_schema import KoordinatAbsenKelasBase, KoordinatAbsenDetail
+from ...schemas.koordinatAbsen_schema import KoordinatAbsenKelasBase, KoordinatAbsenDetail
 # common
 from ....error.errorHandling import HttpException
 

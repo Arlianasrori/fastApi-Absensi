@@ -5,6 +5,7 @@ from sqlalchemy.orm import joinedload
 # models
 from ....models.jadwal_model import Jadwal,Mapel
 from ....models.siswa_model import Kelas, Jurusan
+from ....models.absen_model import KoordinatAbsenKelas
 from ....models.guru_mapel_model import GuruMapel
 # schemas
 from ...schemas.jadwal_schema import JadwalBase,JadwalDetail
@@ -23,6 +24,10 @@ async def addJadwal(id_sekolah : int,id_tahun : int,jadwal : AddJadwalRequest,se
     if not findKelas :
         raise HttpException(404,f"Kelas dengan id {jadwal.id_kelas} tidak ditemukan")
     
+    findKoordinat = (await session.execute(select(KoordinatAbsenKelas).where(and_(KoordinatAbsenKelas.id == jadwal.id_koordinat,KoordinatAbsenKelas.id_kelas == jadwal.id_kelas,KoordinatAbsenKelas.id_sekolah == id_sekolah,KoordinatAbsenKelas.id_tahun == id_tahun)))).scalar_one_or_none()
+    if not findKoordinat :
+        raise HttpException(404,f"Koordinat absen kelas dengan id {jadwal.id_koordinat} tidak ditemukan")
+    
     findMapel = (await session.execute(select(Mapel).where(and_(Mapel.id == jadwal.id_mapel,Mapel.id_sekolah == id_sekolah,Mapel.id_tahun == id_tahun)))).scalar_one_or_none()
     if not findMapel :
         raise HttpException(404,f"Mapel dengan id {jadwal.id_mapel} tidak ditemukan")
@@ -40,6 +45,7 @@ async def addJadwal(id_sekolah : int,id_tahun : int,jadwal : AddJadwalRequest,se
     kelasDictCopy = deepcopy(findKelas.__dict__)
     mapelDictCopy = deepcopy(findMapel.__dict__)
     guruMapelDictCopy = deepcopy(findGuruMapel.__dict__)
+    koordinatDictCopy = deepcopy(findKoordinat.__dict__)
     session.add(Jadwal(**jadwalMapping))
     await session.commit()
     
@@ -49,12 +55,13 @@ async def addJadwal(id_sekolah : int,id_tahun : int,jadwal : AddJadwalRequest,se
             **jadwalMapping,
             "kelas" : kelasDictCopy,
             "mapel" : mapelDictCopy,
-            "guru_mapel" : guruMapelDictCopy
+            "guru_mapel" : guruMapelDictCopy,
+            "koordinat" : koordinatDictCopy
         }
     }
 
 async def getAllJadwal(page : int | None,id_sekolah : int,id_tahun : int,query : FilterJadwalQuery,session : AsyncSession) -> list[JadwalDetail] | ResponseJadwalPag:
-    statementGetJadwal = select(Jadwal).options(joinedload(Jadwal.kelas),joinedload(Jadwal.mapel),joinedload(Jadwal.guru_mapel)).where(and_(Jadwal.id_sekolah == id_sekolah,Jadwal.id_tahun == id_tahun,Jadwal.id_kelas == query.id_kelas if query.id_kelas else True,Jadwal.id_mapel == query.id_mapel if query.id_mapel else True,Jadwal.hari == query.hari if query.hari else True)).order_by(Jadwal.jam_mulai)
+    statementGetJadwal = select(Jadwal).options(joinedload(Jadwal.kelas),joinedload(Jadwal.mapel),joinedload(Jadwal.guru_mapel),joinedload(Jadwal.koordinat)).where(and_(Jadwal.id_sekolah == id_sekolah,Jadwal.id_tahun == id_tahun,Jadwal.id_kelas == query.id_kelas if query.id_kelas else True,Jadwal.id_mapel == query.id_mapel if query.id_mapel else True,Jadwal.hari == query.hari if query.hari else True)).order_by(Jadwal.jam_mulai)
 
     if page :
         findJadwal = (await session.execute(statementGetJadwal.limit(10).offset(10 * (page - 1)))).scalars().all()
@@ -76,7 +83,7 @@ async def getAllJadwal(page : int | None,id_sekolah : int,id_tahun : int,query :
         }
 
 async def getJadwalId(id : int,id_sekolah : int,session : AsyncSession) -> JadwalDetail:
-    findJadwal = (await session.execute(select(Jadwal).options(joinedload(Jadwal.kelas),joinedload(Jadwal.mapel),joinedload(Jadwal.guru_mapel)).where(and_(Jadwal.id == id,Jadwal.id_sekolah == id_sekolah)))).scalar_one_or_none()
+    findJadwal = (await session.execute(select(Jadwal).options(joinedload(Jadwal.kelas),joinedload(Jadwal.mapel),joinedload(Jadwal.guru_mapel),joinedload(Jadwal.koordinat)).where(and_(Jadwal.id == id,Jadwal.id_sekolah == id_sekolah)))).scalar_one_or_none()
 
     if not findJadwal :
         raise HttpException(404,f"Jadwal dengan id {id} tidak ditemukan")
@@ -87,7 +94,7 @@ async def getJadwalId(id : int,id_sekolah : int,session : AsyncSession) -> Jadwa
     }
 
 async def updateJadwal(id : int,id_sekolah : int,id_tahun : int,jadwal : UpdateJadwalRequest,session : AsyncSession) -> JadwalDetail:
-    findJadwal = (await session.execute(select(Jadwal).options(joinedload(Jadwal.kelas),joinedload(Jadwal.mapel),joinedload(Jadwal.guru_mapel)).where(and_(Jadwal.id == id,Jadwal.id_sekolah == id_sekolah, Jadwal.id_tahun == id_tahun)))).scalar_one_or_none()
+    findJadwal = (await session.execute(select(Jadwal).options(joinedload(Jadwal.kelas),joinedload(Jadwal.mapel),joinedload(Jadwal.guru_mapel),joinedload(Jadwal.koordinat)).where(and_(Jadwal.id == id,Jadwal.id_sekolah == id_sekolah, Jadwal.id_tahun == id_tahun)))).scalar_one_or_none()
     if not findJadwal :
         raise HttpException(404,f"Jadwal dengan id {id} tidak ditemukan")
     
