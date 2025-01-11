@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from .siswa_schema import SiswaBase
+from .kelasJurusan_schema import KelasBase
 from datetime import date,time
 from ...models.absen_model import StatusAbsenEnum
 
@@ -29,3 +30,6 @@ class KoordinatAbsenKelasBase(BaseModel) :
     latitude : float
     longitude : float
     radius_absen_meter : float
+
+class KoordinatAbsenDetail(KoordinatAbsenKelasBase) :
+    kelas : KelasBase
