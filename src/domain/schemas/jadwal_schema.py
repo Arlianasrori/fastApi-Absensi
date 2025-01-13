@@ -15,6 +15,9 @@ class JadwalBase(BaseModel):
 class JadwalWithKoordinat(JadwalBase) :
     koordinat : KoordinatAbsenKelasBase
 
+class JadwalWithMapel(JadwalBase) :
+    mapel : MapelBase
+
 class JadwalWithMapelGuruMapel(JadwalBase) :
     mapel : MapelBase
     guru_mapel : GuruMapelBase
