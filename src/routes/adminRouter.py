@@ -7,7 +7,6 @@ from ..domain.schemas.sekolah_schema import AdminWithSekolah,AdminBase
 
 # jurusan dan kelas
 from ..domain.admin.jurusan_kelas.jurusanKelasSchema import AddJurusanRequest, UpdateJurusanRequest,AddKelasRequest,UpdateKelasRequest
-
 from ..domain.schemas.kelasJurusan_schema import JurusanBase,JurusanWithKelas,KelasBase,KelasWithJurusan
 from ..domain.admin.jurusan_kelas import jurusanKelasService
 
@@ -49,7 +48,7 @@ from ..domain.admin.laporan_siswa import laporanSiswaService
 from ..domain.admin.laporan_siswa.laporanSiswaSchema import FilterLaporanSiswaQuery,ResponseLaporanSiswaPag
 from ..domain.schemas.laporanSiswa_schema import LaporanSiswaDetail
 
-# laporan guru walad
+# laporan guru walas
 from ..domain.admin.laporan_guru_walas import laporanGuruWalasService
 from ..domain.admin.laporan_guru_walas.laporanGuruWalasSchema import FilterLaporanGuruWalasQuery,ResponseLaporanGuruWalasPag
 from ..domain.schemas.laporanGuruWalas_schema import LaporanGuruWalasDetail

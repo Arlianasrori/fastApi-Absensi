@@ -9,7 +9,7 @@ from ....models.siswa_model import Kelas, Siswa
 from ....models.jadwal_model import Jadwal
 # schemas
 from .absenSchema import GetHistoriTinjauanAbsenResponse, StatistikAbsenResponse, GetAbsenByKelasFilterQuery, GetAbsenBySiswaFilterQuery
-from ...schemas.absen_schema import AbsenBase, GetAbsenTinjauanResponse, GetAbsenHarianResponse,AbsenWithSiswa
+from ...schemas.absen_schema import AbsenBase, GetAbsenTinjauanResponse, GetAbsenHarianResponse,AbsenWithSiswa, AbsenWithJadwalMapel
 from ...schemas.kelasJurusan_schema import KelasBase
 # common
 from ....error.errorHandling import HttpException
@@ -100,8 +100,8 @@ async def getAbsenByKelas(query : GetAbsenByKelasFilterQuery,session : AsyncSess
     }
 
 # get all absen by siswa
-async def getAllAbsenBySiswa(query : GetAbsenBySiswaFilterQuery,session : AsyncSession) -> list[AbsenWithSiswa] :
-    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa)).where(and_(Absen.siswa.and_(Siswa.id == query.id_siswa),Absen.tanggal == query.tanggal)))).scalars().all()
+async def getAllAbsenBySiswa(query : GetAbsenBySiswaFilterQuery,session : AsyncSession) -> list[AbsenWithJadwalMapel] :
+    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.Jadwal).joinedload(Jadwal.mapel)).where(and_(Absen.siswa.and_(Siswa.id == query.id_siswa),Absen.tanggal == query.tanggal)))).scalars().all()
 
     return {
         "msg" : "success",

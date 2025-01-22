@@ -12,6 +12,9 @@ class JadwalBase(BaseModel):
     jam_mulai : time
     jam_selesai : time
 
+class JadwalWithMapel(JadwalBase) :
+    mapel : MapelBase
+    
 class JadwalWithKoordinat(JadwalBase) :
     koordinat : KoordinatAbsenKelasBase
 
