@@ -33,11 +33,11 @@ class AbsenWithSiswaKelas(AbsenBase) :
 
 class AbsenWithSiswaKelasWalasDetail(AbsenBase) :
     siswa : SiswaWithKelasWalas
-    detail : AbsenDetailWithPetugasBK
+    detail : AbsenDetailWithPetugasBK | None = None
 
 class AbsenWithSiswaDetail(AbsenBase) :
     siswa : SiswaBase
-    detail : AbsenDetailBase
+    detail : AbsenDetailBase | None = None
 
 class GetAbsenTinjauanResponse(AbsenWithSiswaKelasWalasDetail) :
     jadwal : JadwalWithKoordinatGuruMapel
