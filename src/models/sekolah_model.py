@@ -21,7 +21,8 @@ class Sekolah(Base):
     guru_mapel = relationship("GuruMapel", back_populates="sekolah",cascade="all")
     mapel = relationship("Mapel", back_populates="sekolah",cascade="all")
     jadwal = relationship("Jadwal", back_populates="sekolah",cascade="all")
-
+    koordinat_absen = relationship("KoordinatAbsenKelas", back_populates="sekolah",cascade="all")
+    
     def __repr__(self):
         return f"<Sekolah(id={self.id}, npsn='{self.npsn}', nama='{self.nama}')>"
 
@@ -57,6 +58,7 @@ class TahunSekolah(Base):
     guru_mapel = relationship("GuruMapel", back_populates="tahun")
     mapel = relationship("Mapel", back_populates="tahun")
     jadwal = relationship("Jadwal", back_populates="tahun")
+    koordinat_absen = relationship("KoordinatAbsenKelas", back_populates="tahun")
 
     def __repr__(self):
         return f"<Tahun(id={self.id}, tahun='{self.tahun}'')>"

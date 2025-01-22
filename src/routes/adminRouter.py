@@ -194,8 +194,8 @@ async def addMapel(mapel : AddMapelRequest,admin : dict = Depends(getAdminAuth),
     return await mapelService.addMapel(admin["id_sekolah"],mapel,session)
 
 @adminRouter.get("/mapel",response_model=ApiResponse[list[MapelBase]],tags=["ADMIN/MAPEL"])
-async def getAllMapel(admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
-    return await mapelService.getAllMapel(admin["id_sekolah"],session)
+async def getAllMapel(id_tahun : int,admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
+    return await mapelService.getAllMapel(admin["id_sekolah"],id_tahun,session)
 
 @adminRouter.put("/mapel/{id_mapel}",response_model=ApiResponse[MapelBase],tags=["ADMIN/MAPEL"])
 async def updateMapel(id_mapel : int,mapel : UpdateMapelRequest | None = UpdateMapelRequest(),admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :

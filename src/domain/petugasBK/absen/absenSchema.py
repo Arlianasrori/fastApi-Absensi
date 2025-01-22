@@ -20,3 +20,4 @@ class GetAbsenByKelasFilterQuery(BaseModel) :
 class GetAbsenBySiswaFilterQuery(BaseModel) :
     tanggal : date 
     id_siswa : int 
+    

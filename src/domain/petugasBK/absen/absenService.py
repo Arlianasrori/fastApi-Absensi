@@ -15,6 +15,7 @@ from ...schemas.kelasJurusan_schema import KelasBase
 from ....error.errorHandling import HttpException
 from datetime import date
 from collections import defaultdict
+from ...common.get_day_today import get_day
 
 # for get statistix=c absen today : jumlah absen diterima, ditolak, belum ditinjau
 async def getStatistikAbsen(id_petugasBK : int,session : AsyncSession) -> StatistikAbsenResponse :
@@ -86,13 +87,29 @@ async def getAllKelasTinjauan(id_petugasBK : int,session : AsyncSession) -> list
     }
 
 # get all absen by kelas
-async def getAbsenByKelas(query : GetAbsenByKelasFilterQuery,session : AsyncSession) -> dict[str,list[AbsenBase]] :
+async def getAbsenByKelas(query : GetAbsenByKelasFilterQuery,session : AsyncSession) -> dict[str,dict[str : AbsenBase]] :
     findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa)).where(and_(Absen.siswa.and_(Siswa.id_kelas == query.id_kelas),Absen.tanggal == query.tanggal)))).scalars().all()
-
-    grouped_absen = defaultdict(list)
-    for absenItem in findAbsen:
-        namaSiswa_key = absenItem.siswa.nama
-        grouped_absen[namaSiswa_key].append(absenItem)
+    
+    findSiswa = (await session.execute(select(Siswa).where(Siswa.id_kelas == query.id_kelas).order_by(Siswa.nama.asc()))).scalars().all()
+    
+    dayNow : dict = await get_day()
+    findJadwal = (await session.execute(select(Jadwal).where(and_(Jadwal.id_kelas == query.id_kelas,Jadwal.hari == dayNow["day_name"])).order_by(Jadwal.jam_mulai.asc()))).scalars().all()
+    
+    print(findJadwal)
+    
+    grouped_absen = {}
+    for siswaItem in findSiswa :
+        absenSiswa = list(filter(lambda x: x.id_siswa == siswaItem.id, findAbsen))
+        dictResponse = {}
+        
+        for jadwalItem,index in findJadwal :
+            absenFilter = list(filter(lambda x: x.id_jadwal == jadwalItem.id, absenSiswa))
+            if len(absenFilter) > 0 :
+                dictResponse.update({index + 1 : absenFilter[0]})
+            else :
+                dictResponse.update({index + 1 : None})
+        
+        grouped_absen[siswaItem.nama] = dictResponse
 
     return {
         "msg" : "success",
@@ -101,7 +118,8 @@ async def getAbsenByKelas(query : GetAbsenByKelasFilterQuery,session : AsyncSess
 
 # get all absen by siswa
 async def getAllAbsenBySiswa(query : GetAbsenBySiswaFilterQuery,session : AsyncSession) -> list[AbsenWithJadwalMapel] :
-    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.Jadwal).joinedload(Jadwal.mapel)).where(and_(Absen.siswa.and_(Siswa.id == query.id_siswa),Absen.tanggal == query.tanggal)))).scalars().all()
+    print(query)
+    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.jadwal).joinedload(Jadwal.mapel)).where(and_(Absen.id_siswa == query.id_siswa,Absen.tanggal == query.tanggal)))).scalars().all()
 
     return {
         "msg" : "success",
