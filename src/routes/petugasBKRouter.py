@@ -46,7 +46,20 @@ async def getHistoriTinajuanDetil(id_absen : int,session : sessionDepedency = No
 async def getKelasTinjauan(petugasBK : dict = Depends(getPetugasBKAuth),session : sessionDepedency = None) :
     return await absenService.getAllKelasTinjauan(petugasBK["id"],session)
 
-@petugasBKRouter.get("/absen/byKelas",response_model=ApiResponse[dict[str,dict[str , AbsenBase | None]]],tags=["PETUGASBK/ABSEN"])
+@petugasBKRouter.get("/absen/byKelas",response_model=ApiResponse[dict[str,dict[int , AbsenBase | None]]],responses={"data" : {
+        "Ni Ketut Deva Gangga Swari": {
+            "1": {
+                "id": 37569820,
+                "id_jadwal": 80269451,
+                "id_siswa": 46983051,
+                "tanggal": "2025-01-22",
+                "jam": "12:44:49.040697",
+                "file": "http://localhost:2008/public/laporan_siswa/56430918-absensi-App.png",
+                "status": "hadir"
+            },
+            "2": None
+        }
+    }},tags=["PETUGASBK/ABSEN"])
 async def getAbsenByKelas(query : GetAbsenByKelasFilterQuery = Depends(),session : sessionDepedency = None) :
     return await absenService.getAbsenByKelas(query,session)
 
