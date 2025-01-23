@@ -23,11 +23,6 @@ class GetAbsenBySiswaFilterQuery(BaseModel) :
     tanggal : date 
     id_siswa : int 
 
-class GetAbsenByKelasResponse(BaseModel) :
-    jumlah_siswa : int
-    guru_walas: GuruWalasBase
-    absen : dict[str,list[AbsenBase]]
-
 class TinjauAbsenRequest(BaseModel) :
     status_tinjauan : StatusTinjauanEnum
 

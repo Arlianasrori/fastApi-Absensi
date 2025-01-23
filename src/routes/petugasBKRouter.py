@@ -6,8 +6,8 @@ from ..domain.schemas.petugasBK_schema import PetugasBkBase,PetugasBKWithAlamatA
 
 # absen
 from ..domain.petugasBK.absen import absenService
-from ..domain.petugasBK.absen.absenSchema import GetHistoriTinjauanAbsenResponse, StatistikAbsenResponse, GetAbsenByKelasFilterQuery, GetAbsenBySiswaFilterQuery, GetAbsenByKelasResponse, TinjauAbsenRequest, TinjauAbsenResponse
-from ..domain.schemas.absen_schema import AbsenWithJadwalMapel, GetAbsenTinjauanResponse, GetAbsenHarianResponse,AbsenWithSiswa
+from ..domain.petugasBK.absen.absenSchema import GetHistoriTinjauanAbsenResponse, StatistikAbsenResponse, GetAbsenByKelasFilterQuery, GetAbsenBySiswaFilterQuery, TinjauAbsenRequest, TinjauAbsenResponse
+from ..domain.schemas.absen_schema import AbsenBase, GetAbsenTinjauanResponse, GetAbsenHarianResponse,AbsenWithSiswa,AbsenWithJadwalMapel
 from ..domain.schemas.kelasJurusan_schema import KelasBase
 
 # depends
@@ -38,8 +38,8 @@ async def getStatistikAbsen(petugasBK : dict = Depends(getPetugasBKAuth),session
 async def getHistoriTinjauanAbsen(petugasBK : dict = Depends(getPetugasBKAuth),session : sessionDepedency = None) :
     return await absenService.getHistoriTinjauanAbsen(petugasBK["id"],session)
 
-@petugasBKRouter.get("/absen/histori-tinjauan/{id_absen}",response_model=ApiResponse[GetAbsenTinjauanResponse],tags=["PETUGASBK/ABSEN"])
-async def getHistoriTinjauanAbsen(id_absen : int,session : sessionDepedency = None) :
+@petugasBKRouter.get("/absen/histori-tinjauan/{id_absen}",response_model=ApiResponse[GetHistoriTinjauanAbsenResponse],tags=["PETUGASBK/ABSEN"])
+async def getHistoriTinajuanDetil(id_absen : int,session : sessionDepedency = None) :
     return await absenService.getDetailTinjauanAbsensiById(id_absen,session)
 
 @petugasBKRouter.get("/absen/kelas-tinjauan",response_model=ApiResponse[list[KelasBase]],tags=["PETUGASBK/ABSEN"])

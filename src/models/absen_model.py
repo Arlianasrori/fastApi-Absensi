@@ -6,6 +6,7 @@ import enum
 class StatusAbsenEnum(enum.Enum):
     izin = "izin"
     hadir = "hadir"
+    tidak_hadir = "tidak_hadir"
     izin_telat = "izin_telat"
     telat = "telat"
     sakit = "sakit"
@@ -25,10 +26,13 @@ class KoordinatAbsenKelas(Base) :
     latitude = Column(Float)
     longitude = Column(Float)
     radius_absen_meter = Column(Float)
+    id_tahun = Column(Integer, ForeignKey('tahun_sekolah.id'),nullable=False)
+    id_sekolah = Column(Integer, ForeignKey('sekolah.id'),nullable=False)
 
     kelas = relationship("Kelas", back_populates="koordinat_absen")
     jadwal = relationship("Jadwal", back_populates="koordinat")
-
+    tahun = relationship("TahunSekolah", back_populates="koordinat_absen")
+    sekolah = relationship("Sekolah", back_populates="koordinat_absen")
 class Absen(Base):
     __tablename__ = 'absen'
 

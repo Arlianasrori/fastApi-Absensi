@@ -28,16 +28,22 @@ class AbsenBase(BaseModel) :
 class AbsenWithSiswa(AbsenBase) :
     siswa : SiswaBase
 
+class AbsenWithJadwalMapel(AbsenBase) :
+    jadwal : JadwalWithMapel
+
+class AbsenWithDetail(AbsenBase) :
+    detail : AbsenDetailBase | None = None
+    
 class AbsenWithSiswaKelas(AbsenBase) :
     siswa : SiswaWithKelas
 
 class AbsenWithSiswaKelasWalasDetail(AbsenBase) :
     siswa : SiswaWithKelasWalas
-    detail : AbsenDetailWithPetugasBK
+    detail : AbsenDetailWithPetugasBK | None = None
 
 class AbsenWithSiswaDetail(AbsenBase) :
     siswa : SiswaBase
-    detail : AbsenDetailBase
+    detail : AbsenDetailBase | None = None
 
 class AbsenWithJadwalMapel(AbsenBase) :
     jadwal : JadwalWithMapel

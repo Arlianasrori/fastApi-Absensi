@@ -8,8 +8,8 @@ from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum, StatusTi
 from ....models.siswa_model import Kelas, Siswa
 from ....models.jadwal_model import Jadwal
 # schemas
-from .absenSchema import GetHistoriTinjauanAbsenResponse, StatistikAbsenResponse, GetAbsenByKelasFilterQuery, GetAbsenBySiswaFilterQuery, GetAbsenByKelasResponse, TinjauAbsenRequest, TinjauAbsenResponse
-from ...schemas.absen_schema import  GetAbsenTinjauanResponse, GetAbsenHarianResponse,AbsenWithSiswa, AbsenWithJadwalMapel
+from .absenSchema import GetHistoriTinjauanAbsenResponse, StatistikAbsenResponse, GetAbsenByKelasFilterQuery, GetAbsenBySiswaFilterQuery, TinjauAbsenRequest, TinjauAbsenResponse
+from ...schemas.absen_schema import AbsenBase, GetAbsenTinjauanResponse, GetAbsenHarianResponse,AbsenWithSiswa, AbsenWithJadwalMapel
 from ...schemas.kelasJurusan_schema import KelasBase
 from ...schemas.response_schema import MessageOnlyResponse
 # common
@@ -19,6 +19,7 @@ from collections import defaultdict
 from ....utils.generateId_util import generate_id
 from ....utils.updateTable_util import updateTable
 from copy import deepcopy
+from ...common.get_day_today import get_day
 
 # daftar status absen yang dapat ditinjau: diterima atau ditolak oleh petugasBK
 liststatusForTinjau = [StatusAbsenEnum.dispen.value,StatusAbsenEnum.sakit.value,StatusAbsenEnum.telat.value,StatusAbsenEnum.izin_telat.value, StatusAbsenEnum.izin.value]
@@ -92,18 +93,29 @@ async def getAllKelasTinjauan(id_petugasBK : int,session : AsyncSession) -> list
     }
 
 # get all absen by kelas
-async def getAbsenByKelas(query : GetAbsenByKelasFilterQuery,session : AsyncSession) -> GetAbsenByKelasResponse :
-    findKelas = (await session.execute(select(Kelas).options(joinedload(Kelas.siswa),joinedload(Kelas.guru_walas)).where(Kelas.id == query.id_kelas))).scalar_one_or_none()
-
-    if not findAbsen :
-        raise HttpException(404,"kelas tidak ditemukan")
-    
+async def getAbsenByKelas(query : GetAbsenByKelasFilterQuery,session : AsyncSession) -> dict[str,dict[int : AbsenBase]] :
     findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa)).where(and_(Absen.siswa.and_(Siswa.id_kelas == query.id_kelas),Absen.tanggal == query.tanggal)))).scalars().all()
-
-    grouped_absen = defaultdict(list)
-    for absenItem in findAbsen:
-        namaSiswa_key = absenItem.siswa.nama
-        grouped_absen[namaSiswa_key].append(absenItem)
+    
+    findSiswa = (await session.execute(select(Siswa).where(Siswa.id_kelas == query.id_kelas).order_by(Siswa.nama.asc()))).scalars().all()
+    
+    dayNow : dict = await get_day()
+    findJadwal = (await session.execute(select(Jadwal).where(and_(Jadwal.id_kelas == query.id_kelas,Jadwal.hari == dayNow["day_name"].value)).order_by(Jadwal.jam_mulai.asc()))).scalars().all()
+    
+    print(findJadwal,dayNow["day_name"].value)
+    
+    grouped_absen = {}
+    for siswaItem in findSiswa :
+        absenSiswa = list(filter(lambda x: x.id_siswa == siswaItem.id, findAbsen))
+        dictResponse = {}
+        
+        for index,jadwalItem in enumerate(findJadwal) :
+            absenFilter = list(filter(lambda x: x.id_jadwal == jadwalItem.id, absenSiswa))
+            if len(absenFilter) > 0 :
+                dictResponse.update({index + 1 : absenFilter[0]})
+            else :
+                dictResponse.update({index + 1 : None})
+        
+        grouped_absen[siswaItem.nama] = dictResponse
 
     return {
         "msg" : "success",
@@ -116,7 +128,7 @@ async def getAbsenByKelas(query : GetAbsenByKelasFilterQuery,session : AsyncSess
 
 # get all absen by siswa
 async def getAllAbsenBySiswa(query : GetAbsenBySiswaFilterQuery,session : AsyncSession) -> list[AbsenWithJadwalMapel] :
-    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.jadwal).joinedload(Jadwal.mapel)).where(and_(Absen.siswa.and_(Siswa.id == query.id_siswa),Absen.tanggal == query.tanggal)))).scalars().all()
+    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.jadwal).joinedload(Jadwal.mapel)).where(and_(Absen.id_siswa == query.id_siswa,Absen.tanggal == query.tanggal)))).scalars().all()
 
     return {
         "msg" : "success",
