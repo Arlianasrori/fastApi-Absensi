@@ -8,7 +8,7 @@ from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum
 from ....models.jadwal_model import Jadwal
 # schemas
 from .absenSchema import RekapAbsenMingguanResponse, StatusRekapAbsenMIngguanEnum, CekAbsenSiswaTodayResponse, AbsenSiswaRequest
-from ...schemas.absen_schema import AbsenWithSiswaDetail
+from ...schemas.absen_schema import AbsenWithDetail
 from ..koordinat_absen.koordinatAbsenSchema import CekRadiusKoordinatRequest, CekRadiusKoordinatResponse
 # service
 from ..koordinat_absen.koordinatAbsenService import cekRadiusKoordinat
@@ -171,7 +171,6 @@ async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSessio
             "msg" : "success",
             "data" : {
                 **absenMapping,
-                "detail" : absenDetailMapping,
-                "siswa" : siswa
+                "detail" : absenDetailMapping
             }
         }

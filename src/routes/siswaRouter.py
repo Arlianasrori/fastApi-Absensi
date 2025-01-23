@@ -26,6 +26,7 @@ from ..domain.schemas.laporanSiswa_schema import LaporanSiswaBase,LaporanSiswaDe
 # absen
 from ..domain.siswa.absen import absenService
 from ..domain.siswa.absen.absenSchema import RekapAbsenMingguanResponse, CekAbsenSiswaTodayResponse, AbsenSiswaRequest
+from ..domain.schemas.absen_schema import AbsenWithDetail
 # common
 from ..domain.schemas.response_schema import ApiResponse,MessageOnlyResponse
 from ..db.sessionDepedency import sessionDepedency

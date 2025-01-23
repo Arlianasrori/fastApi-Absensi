@@ -33,8 +33,8 @@ async def addMapel(id_sekolah : int,mapel : AddMapelRequest,session : AsyncSessi
         }
     }
 
-async def getAllMapel(id_sekolah : int,session : AsyncSession) -> list[MapelBase] :
-    findMapel = (await session.execute(select(Mapel).where(Mapel.id_sekolah == id_sekolah))).scalars().all()
+async def getAllMapel(id_sekolah : int,id_tahun : int,session : AsyncSession) -> list[MapelBase] :
+    findMapel = (await session.execute(select(Mapel).where(and_(Mapel.id_sekolah == id_sekolah,Mapel.id_tahun == id_tahun)))).scalars().all()
 
     return {
         "msg" : "success",

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from .siswa_schema import SiswaBase, SiswaWithKelasWalas
-from .jadwal_schema import JadwalWithKoordinatGuruMapel, JadwalWithKoordinat
+from .jadwal_schema import JadwalWithKoordinatGuruMapel, JadwalWithKoordinat, JadwalWithMapel
 from datetime import date,time
 from ...models.absen_model import StatusAbsenEnum, StatusTinjauanEnum
 from ..schemas.petugasBK_schema import PetugasBkBase
@@ -28,6 +28,12 @@ class AbsenBase(BaseModel) :
 class AbsenWithSiswa(AbsenBase) :
     siswa : SiswaBase
 
+class AbsenWithJadwalMapel(AbsenBase) :
+    jadwal : JadwalWithMapel
+
+class AbsenWithDetail(AbsenBase) :
+    detail : AbsenDetailBase | None = None
+    
 class AbsenWithSiswaKelas(AbsenBase) :
     siswa : SiswaBase
 

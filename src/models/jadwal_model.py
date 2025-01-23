@@ -53,4 +53,4 @@ class Jadwal(Base):
     koordinat = relationship("KoordinatAbsenKelas", back_populates="jadwal")   
 
     def __repr__(self):
-        return f"<Jadwal(id={self.id} , mapel='{self.mapel}', kelas='{self.kelas}', tahun='{self.tahun}')>"
+        return f"<Jadwal(id={self.id}')>"
