@@ -2,11 +2,11 @@ from fastapi import APIRouter,Depends, UploadFile
 
 # auth-profile
 from ..domain.petugasBK.auth_profile import authProfileService
-from ..domain.schemas.petugasBK_schema import PetugasBkBase,PetugasBKWithAlamatAndDistribusi
+from ..domain.schemas.petugasBK_schema import PetugasBkBase,PetugasBKDetailWithSekolah
 
 # absen
 from ..domain.petugasBK.absen import absenService
-from ..domain.petugasBK.absen.absenSchema import GetHistoriTinjauanAbsenResponse, StatistikAbsenResponse, GetAbsenByKelasFilterQuery, GetAbsenBySiswaFilterQuery, TinjauAbsenRequest, TinjauAbsenResponse
+from ..domain.petugasBK.absen.absenSchema import GetHistoriTinjauanAbsenResponse, StatistikAbsenResponse, GetAbsenByKelasFilterQuery, GetAbsenBySiswaFilterQuery, TinjauAbsenRequest, TinjauAbsenResponse,GetAllKelasTinjauanResponse
 from ..domain.schemas.absen_schema import AbsenBase, GetAbsenTinjauanResponse, GetAbsenHarianResponse,AbsenWithSiswa,AbsenWithJadwalMapel
 from ..domain.schemas.kelasJurusan_schema import KelasBase
 
@@ -25,7 +25,7 @@ petugasBKRouter = APIRouter(prefix="/petugasBK",dependencies=[Depends(petugasBKD
 async def getPetugasBK(petugasBK : dict = Depends(getPetugasBKAuth),session : sessionDepedency = None) :
     return await authProfileService.getPetugasBK(petugasBK["id"],session)
 
-@petugasBKRouter.get("/profile",response_model=ApiResponse[PetugasBKWithAlamatAndDistribusi],tags=["PETUGASBK/AUTH-PROFILE"])
+@petugasBKRouter.get("/profile",response_model=ApiResponse[PetugasBKDetailWithSekolah],tags=["PETUGASBK/AUTH-PROFILE"])
 async def getProfilePetugasBK(petugasBK : dict = Depends(getPetugasBKAuth),session : sessionDepedency = None) :
     return await authProfileService.getProfile(petugasBK["id"],session)
 
@@ -42,11 +42,11 @@ async def getHistoriTinjauanAbsen(petugasBK : dict = Depends(getPetugasBKAuth),s
 async def getHistoriTinajuanDetil(id_absen : int,session : sessionDepedency = None) :
     return await absenService.getDetailTinjauanAbsensiById(id_absen,session)
 
-@petugasBKRouter.get("/absen/kelas-tinjauan",response_model=ApiResponse[list[KelasBase]],tags=["PETUGASBK/ABSEN"])
+@petugasBKRouter.get("/absen/kelas-tinjauan",response_model=ApiResponse[GetAllKelasTinjauanResponse],tags=["PETUGASBK/ABSEN"])
 async def getKelasTinjauan(petugasBK : dict = Depends(getPetugasBKAuth),session : sessionDepedency = None) :
     return await absenService.getAllKelasTinjauan(petugasBK["id"],session)
 
-@petugasBKRouter.get("/absen/byKelas",response_model=ApiResponse[GetAbsenByKelasResponse],tags=["PETUGASBK/ABSEN"])
+@petugasBKRouter.get("/absen/byKelas",response_model=ApiResponse[dict[str,dict[int,AbsenBase]]],tags=["PETUGASBK/ABSEN"])
 async def getAbsenByKelas(query : GetAbsenByKelasFilterQuery = Depends(),session : sessionDepedency = None) :
     return await absenService.getAbsenByKelas(query,session)
 

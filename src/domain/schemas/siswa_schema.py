@@ -2,7 +2,7 @@ from pydantic import BaseModel,EmailStr
 from .alamat_schema import AlamatBase
 from .kelasJurusan_schema import JurusanBase,KelasBase
 from .guruWalas_schema import GuruWalasBase
-
+from .sekolah_schema import SekolahBase
 class SiswaBase(BaseModel) :
     id : int
     nis : str
@@ -27,3 +27,6 @@ class SiswaWithJurusanKelasAlamat(SiswaBase) :
     jurusan : JurusanBase
     alamat : AlamatBase | None = None
     kelas : KelasBase
+
+class SiswaDetailWithSekolah(SiswaWithJurusanKelasAlamat) :
+    sekolah : SekolahBase

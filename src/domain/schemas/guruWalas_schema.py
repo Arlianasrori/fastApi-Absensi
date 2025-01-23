@@ -3,7 +3,7 @@ from ...types.user_types import GenderType
 from datetime import date
 from .kelasJurusan_schema import KelasBase
 from .alamat_schema import AlamatBase
-
+from .sekolah_schema import SekolahBase
 class GuruWalasBase(BaseModel) :
     id : int
     nip : str
@@ -29,3 +29,6 @@ class GuruWalasWithAlamat(GuruWalasBase) :
 class GuruWalasDetail(GuruWalasBase) :
     alamat : AlamatBase
     kelas : KelasBase
+
+class GuruWalasDetailWithSekolah(GuruWalasDetail) :
+    sekolah : SekolahBase

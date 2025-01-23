@@ -11,6 +11,9 @@ class KelasBase(BaseModel) :
     nama : str
     id_jurusan : int
 
+class KelasWithGuruWalas(KelasBase) :
+    guru_walas : dict
+
 class JurusanWithKelas(JurusanBase) :
     kelas : list[KelasBase] = []
 

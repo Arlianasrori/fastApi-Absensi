@@ -2,7 +2,7 @@ from fastapi import APIRouter,Depends, UploadFile
 
 # auth-profile
 from ..domain.siswa.auth_profile import authProfileService
-from ..domain.schemas.siswa_schema import SiswaBase, SiswaWithJurusanKelasAlamat
+from ..domain.schemas.siswa_schema import SiswaBase, SiswaDetailWithSekolah
 
 # jadwal
 from ..domain.siswa.jadwal import jadwalService
@@ -38,7 +38,7 @@ siswaRouter = APIRouter(prefix="/siswa",dependencies=[Depends(siswaDependAuth)])
 async def getSiswa(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await authProfileService.getSiswa(siswa["id"],session)
 
-@siswaRouter.get("/profile",response_model=ApiResponse[SiswaWithJurusanKelasAlamat],tags=["SISWA/AUTH-PROFILE"])
+@siswaRouter.get("/profile",response_model=ApiResponse[SiswaDetailWithSekolah],tags=["SISWA/AUTH-PROFILE"])
 async def getProfileSiswa(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await authProfileService.getProfile(siswa["id"],session)
 
