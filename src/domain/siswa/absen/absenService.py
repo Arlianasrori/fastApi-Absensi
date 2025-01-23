@@ -121,7 +121,7 @@ async def cekAbsenSiswaToday(siswa : dict,session : AsyncSession) -> CekAbsenSis
 
 ABSEN_DOKUMEN_STORE = os.getenv("DEV_LAPORAN_SISWA_STORE")
 ABSEN_DOKUMEN_BASE_URL = os.getenv("DEV_LAPORAN_SISWA_BASE_URL")
-async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSession) -> AbsenWithDetail :
+async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSession) -> AbsenWithSiswaDetail :
     cekRadius = await cekRadiusKoordinat(siswa,CekRadiusKoordinatRequest(latitude=body.latitude,longitude=body.longitude),session)
 
     if not cekRadius["data"]["insideRadius"] :
