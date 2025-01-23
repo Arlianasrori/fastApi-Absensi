@@ -6,7 +6,7 @@ from ..domain.schemas.petugasBK_schema import PetugasBkBase,PetugasBKWithAlamatA
 
 # absen
 from ..domain.petugasBK.absen import absenService
-from ..domain.petugasBK.absen.absenSchema import GetHistoriTinjauanAbsenResponse, StatistikAbsenResponse, GetAbsenByKelasFilterQuery, GetAbsenBySiswaFilterQuery
+from ..domain.petugasBK.absen.absenSchema import GetHistoriTinjauanAbsenResponse, StatistikAbsenResponse, GetAbsenByKelasFilterQuery, GetAbsenBySiswaFilterQuery, TinjauAbsenRequest, TinjauAbsenResponse
 from ..domain.schemas.absen_schema import AbsenBase, GetAbsenTinjauanResponse, GetAbsenHarianResponse,AbsenWithSiswa,AbsenWithJadwalMapel
 from ..domain.schemas.kelasJurusan_schema import KelasBase
 
@@ -46,20 +46,7 @@ async def getHistoriTinajuanDetil(id_absen : int,session : sessionDepedency = No
 async def getKelasTinjauan(petugasBK : dict = Depends(getPetugasBKAuth),session : sessionDepedency = None) :
     return await absenService.getAllKelasTinjauan(petugasBK["id"],session)
 
-@petugasBKRouter.get("/absen/byKelas",response_model=ApiResponse[dict[str,dict[int , AbsenBase | None]]],responses={"data" : {
-        "Ni Ketut Deva Gangga Swari": {
-            "1": {
-                "id": 37569820,
-                "id_jadwal": 80269451,
-                "id_siswa": 46983051,
-                "tanggal": "2025-01-22",
-                "jam": "12:44:49.040697",
-                "file": "http://localhost:2008/public/laporan_siswa/56430918-absensi-App.png",
-                "status": "hadir"
-            },
-            "2": None
-        }
-    }},tags=["PETUGASBK/ABSEN"])
+@petugasBKRouter.get("/absen/byKelas",response_model=ApiResponse[GetAbsenByKelasResponse],tags=["PETUGASBK/ABSEN"])
 async def getAbsenByKelas(query : GetAbsenByKelasFilterQuery = Depends(),session : sessionDepedency = None) :
     return await absenService.getAbsenByKelas(query,session)
 
@@ -70,3 +57,7 @@ async def getAbsenBySiswa(query : GetAbsenBySiswaFilterQuery = Depends(),session
 @petugasBKRouter.get("/absen/detail/{id_absen}",response_model=ApiResponse[GetAbsenHarianResponse],tags=["PETUGASBK/ABSEN"])
 async def getDetailAbsen(id_absen : int,session : sessionDepedency = None) :
     return await absenService.getDetailAbsenHarian(id_absen,session)
+
+@petugasBKRouter.patch("/absen/tinjau/{id_absen}",response_model=ApiResponse[TinjauAbsenResponse],tags=["PETUGASBK/ABSEN"])
+async def getDetailAbsen(id_absen : int,body : TinjauAbsenRequest,petugasBK : dict = Depends(getPetugasBKAuth),session : sessionDepedency = None) :
+    return await absenService.tinjauAbsen(petugasBK,id_absen,body,session)

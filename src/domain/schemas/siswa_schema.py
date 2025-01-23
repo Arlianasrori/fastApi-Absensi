@@ -13,6 +13,9 @@ class SiswaBase(BaseModel) :
     token_FCM : str | None = None
     foto_profile : str | None = None
 
+class SiswaWithKelas(SiswaBase) :
+    kelas : KelasBase
+    
 class SiswaWithKelasWalas(SiswaBase) :
     kelas : KelasBase
     walas : GuruWalasBase | None = None
