@@ -106,6 +106,6 @@ async def getRekapAbsenMingguan(siswa : dict = Depends(getSiswaAuth),session : s
 async def cekAbsenToday(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await absenService.cekAbsenSiswaToday(siswa,session)
 
-@siswaRouter.post("/absen",response_model=ApiResponse[CekAbsenSiswaTodayResponse],tags=["SISWA/ABSEN"])
+@siswaRouter.post("/absen",response_model=ApiResponse[AbsenWithDetail],tags=["SISWA/ABSEN"])
 async def absen(body : AbsenSiswaRequest = Depends(AbsenSiswaRequest.as_form),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await absenService.absenSiswa(siswa,body,session)

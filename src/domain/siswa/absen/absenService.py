@@ -163,7 +163,7 @@ async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSessio
             if not body.catatan:
                 raise HttpException(400,"catatan wajib diisi")
             else :
-                absenDetailMapping = {"id" : generate_id(),"id_absen" : absenMapping["id"],"catatan" : body.catatan}
+                absenDetailMapping = {"id" : generate_id(),"id_absen" : absenMapping["id"],"catatan" : body.catatan,"status_tinjauan" : None,"id_peninjau" : None, "tanggal_tinjauan" : None}
                 session.add(AbsenDetail(**absenDetailMapping))
 
         await session.commit()
