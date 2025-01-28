@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from ...types.user_types import GenderType
 from datetime import date
 
 class JurusanBase(BaseModel):
@@ -19,7 +20,7 @@ class GuruWalasBase(BaseModel) :
     nama : str
     no_telepon : str
     email : str
-    jenis_kelamin : str
+    jenis_kelamin : GenderType
     tempat_lahir : str
     tanggal_lahir : date
     agama : str

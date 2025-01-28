@@ -21,6 +21,8 @@ from ....utils.updateTable_util import updateTable
 from copy import deepcopy
 from ...common.get_day_today import get_day
 import math
+from babel import Locale
+from babel.dates import format_date
 
 # daftar status absen yang dapat ditinjau: diterima atau ditolak oleh petugasBK
 liststatusForTinjau = [StatusAbsenEnum.dispen.value,StatusAbsenEnum.sakit.value,StatusAbsenEnum.telat.value,StatusAbsenEnum.izin_telat.value, StatusAbsenEnum.izin.value]
@@ -112,11 +114,13 @@ async def getAbsenByKelas(query : GetAbsenByKelasFilterQuery,session : AsyncSess
     
     findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa)).where(and_(Absen.siswa.and_(Siswa.id_kelas == query.id_kelas),Absen.tanggal == query.tanggal,Absen.id_siswa.in_(id_siswa_list))))).scalars().all()
     
-    
-    dayNow : dict = await get_day()
-    findJadwal = (await session.execute(select(Jadwal).where(and_(Jadwal.id_kelas == query.id_kelas,Jadwal.hari == "sabtu")).order_by(Jadwal.jam_mulai.asc()))).scalars().all()
-    
-    print(findJadwal,dayNow["day_name"].value)
+    locale_id = Locale('id', 'ID')
+    dayName = format_date(query.tanggal, format="EEEE", locale=locale_id).lower()
+
+    findJadwal = (await session.execute(select(Jadwal).where(and_(Jadwal.id_kelas == query.id_kelas,Jadwal.hari == dayName)).order_by(Jadwal.jam_mulai.asc()))).scalars().all()
+
+    if len(findJadwal) == 0 :
+        raise HttpException(404,"Tidak ada jadwal pada tanggal yang diberikan")
     
     grouped_absen = {}
     for siswaItem in findSiswa :
