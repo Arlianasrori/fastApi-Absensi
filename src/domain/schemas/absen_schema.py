@@ -53,5 +53,5 @@ class GetAbsenTinjauanResponse(AbsenWithSiswaKelasWalasDetail) :
     jadwal : JadwalWithKoordinatGuruMapel
     
 class GetAbsenHarianResponse(AbsenWithSiswa) :
-    detail : AbsenDetailWithPetugasBK
+    detail : AbsenDetailWithPetugasBK | None
     jadwal : JadwalWithKoordinat

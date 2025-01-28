@@ -13,6 +13,7 @@ class KelasBase(BaseModel) :
     nama : str
     id_jurusan : int
 
+# so that no circular depedency
 class GuruWalasBase(BaseModel) :
     id : int
     nip : str
@@ -30,7 +31,7 @@ class GuruWalasBase(BaseModel) :
     token_FCM : str | None = None
     
 class KelasWithGuruWalas(KelasBase) :
-    guru_walas : GuruWalasBase
+    guru_walas : GuruWalasBase | None
 
 class JurusanWithKelas(JurusanBase) :
     kelas : list[KelasBase] = []

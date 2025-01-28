@@ -44,8 +44,8 @@ class Absen(Base):
     file = Column(String, nullable=False)
     status = Column(Enum(StatusAbsenEnum), nullable=False)
 
-    jadwal = relationship("Jadwal", back_populates="absen")
-    siswa = relationship("Siswa", back_populates="absen")
+    jadwal = relationship("Jadwal", back_populates="absen",uselist=False)
+    siswa = relationship("Siswa", back_populates="absen",uselist=False)
     detail = relationship("AbsenDetail",uselist=False, back_populates="absen")
     
     def __repr__(self):
