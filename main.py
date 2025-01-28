@@ -24,6 +24,7 @@ from src.routes.adminRouter import adminRouter
 from src.routes.siswaRouter import siswaRouter
 from src.routes.petugasBKRouter import petugasBKRouter
 from src.routes.guruWalasRouter import guruWalasRouter
+from src.routes.guruMapelRouter import guruMapelRouter
 
 # Initialize FastAPI application with configuration
 App = FastAPI(
@@ -34,7 +35,7 @@ App = FastAPI(
 )
 
 # Add routers to the application
-routes = [authRouter,developerRouter,adminRouter,siswaRouter,petugasBKRouter,guruWalasRouter]
+routes = [authRouter,developerRouter,adminRouter,siswaRouter,petugasBKRouter,guruWalasRouter,guruMapelRouter]
 for router in routes:
     App.include_router(router)
 
