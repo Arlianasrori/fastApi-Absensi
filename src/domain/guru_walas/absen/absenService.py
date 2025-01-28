@@ -8,7 +8,7 @@ from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum, StatusTi
 from ....models.siswa_model import Kelas, Siswa
 from ....models.jadwal_model import Jadwal
 # schemas
-from .absenSchema import GetAbsenFilterQuery, GetAbsenBySiswaFilterQuery, GetAbsenInKelasResponse, GetAbsenByJadwalResponse
+from .absenSchema import GetAbsenFilterQuery, GetAbsenBySiswaFilterQuery, GetAbsenInKelasResponse, GetAbsenByJadwalResponse, GetStatistikAbsenResponse
 from ...schemas.absen_schema import AbsenBase, GetAbsenHarianResponse,AbsenWithJadwalMapel
 from ...schemas.jadwal_schema import JadwalWithMapelGuruMapel
 # common
@@ -23,6 +23,19 @@ import math
 from babel import Locale
 from babel.dates import format_date
 
+
+async def getStatistikAbsen(walas : dict,session : AsyncSession) -> GetStatistikAbsenResponse :
+    findCountSiswaInKelas = (await session.execute(select(func.count(Siswa.id).label("count_data")).where(Siswa.id_kelas == walas["id_kelas"]))).one()._asdict()
+    findAllAbsen = (await session.execute(select(func.count(Absen.id).filter(Absen.status != StatusAbsenEnum.tidak_hadir.value).label("count_data_without_tidak_hadir"),func.count(Absen.id).filter(Absen.status == StatusAbsenEnum.hadir.value).label("count_data_hadir")).where(Absen.siswa.and_(Siswa.id_kelas == walas["id_kelas"],Absen.tanggal == date.today())))).one()._asdict()
+
+    return {
+        "msg" : "success",
+        "data" : {
+            "jumlah_siswa" : findCountSiswaInKelas["count_data"],
+            "jumlah_absen_hadir" : findAllAbsen["count_data_hadir"],
+            "jumlah_absen_tanpa_keterangan" : findCountSiswaInKelas["count_data"] - findAllAbsen["count_data_without_tidak_hadir"]
+        }
+    }
 
 async def getHistoriAbsen(walas : dict,session : AsyncSession) -> list[AbsenBase]:
     findAbsen = (await session.execute(select(Absen).where(Absen.siswa.and_(Siswa.id_kelas == walas["id_kelas"])).limit(3))).scalars().all()

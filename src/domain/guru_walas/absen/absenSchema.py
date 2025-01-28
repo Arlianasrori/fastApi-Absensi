@@ -26,19 +26,7 @@ class GetAbsenByJadwalResponse(PaginationBase) :
     siswa_hadir : int
     waktu_belajar : int
 
-# class TinjauAbsenRequest(BaseModel) :
-#     status_tinjauan : StatusTinjauanEnum
-
-# class TinjauAbsenResponse(BaseModel) :
-#     status : StatusTinjauanEnum
-#     petugasBK : PetugasBkBase
-#     absen : AbsenBase
-
-# class GetAbsenByKelasResponse(BaseModel) :
-#     jumlah_siswa : int
-#     guru_walas : GuruWalasBase
-#     absen : dict[str,dict[int,AbsenBase | None]]
-
-# class GetAllKelasTinjauanResponse(BaseModel) :
-#     kelas : list[KelasWithGuruWalas]
-#     jumlah_siswa : int
+class GetStatistikAbsenResponse(BaseModel) :
+    jumlah_siswa : int
+    jumlah_absen_hadir : int
+    jumlah_absen_tanpa_keterangan : int

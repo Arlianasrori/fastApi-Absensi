@@ -6,7 +6,7 @@ from ..domain.schemas.guruWalas_schema import GuruWalasBase, GuruWalasDetailWith
 
 # absen
 from ..domain.guru_walas.absen import absenService
-from ..domain.guru_walas.absen.absenSchema import GetAbsenBySiswaFilterQuery, GetAbsenFilterQuery, GetAbsenInKelasResponse, GetAbsenByJadwalResponse
+from ..domain.guru_walas.absen.absenSchema import GetAbsenBySiswaFilterQuery, GetAbsenFilterQuery, GetAbsenInKelasResponse, GetAbsenByJadwalResponse, GetStatistikAbsenResponse
 from ..domain.schemas.absen_schema import AbsenWithJadwalMapel, AbsenBase, GetAbsenHarianResponse
 from ..domain.schemas.jadwal_schema import JadwalWithMapelGuruMapel
 
@@ -31,6 +31,10 @@ async def getProfileguruWalas(guruWalas : dict = Depends(getWalasAuth),session :
     return await authProfileService.getGuruWalasProfile(guruWalas["id"],session)
 
 # absen
+@guruWalasRouter.get("/absen/statistik",response_model=ApiResponse[GetStatistikAbsenResponse],tags=["GURUWALAS/ABSEN"])
+async def getStatistikAbsen(guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
+    return await absenService.getStatistikAbsen(guruWalas,session)
+
 @guruWalasRouter.get("/absen/histori",response_model=ApiResponse[list[AbsenBase]],tags=["GURUWALAS/ABSEN"])
 async def getAbsenBySiswa(guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
     return await absenService.getHistoriAbsen(guruWalas,session)
