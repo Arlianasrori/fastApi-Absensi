@@ -3,6 +3,8 @@ from ...types.user_types import GenderType
 from datetime import date
 from .alamat_schema import AlamatBase
 from .kelasJurusan_schema import KelasBase
+from .sekolah_schema import SekolahBase
+
 class PetugasBkBase(BaseModel) :
     id : int
     nip : str
@@ -27,3 +29,6 @@ class DistribusiPetugasBKBase(BaseModel) :
 
 class PetugasBKWithAlamatAndDistribusi(PetugasBKWithAlamat) :
     distribusi_petugas_BK : list[DistribusiPetugasBKBase] | None = None
+
+class PetugasBKDetailWithSekolah(PetugasBKWithAlamatAndDistribusi) :
+    sekolah : SekolahBase

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Date,Time, Enum, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, Date,Time, Enum, Float, Boolean
 from sqlalchemy.orm import relationship
 from ..db.db import Base
 import enum
@@ -6,10 +6,16 @@ import enum
 class StatusAbsenEnum(enum.Enum):
     izin = "izin"
     hadir = "hadir"
+    tidak_hadir = "tidak_hadir"
     izin_telat = "izin_telat"
     telat = "telat"
     sakit = "sakit"
     dispen = "dispen"
+
+class StatusTinjauanEnum(enum.Enum) :
+    diterima = "diterima"
+    ditolak = "ditolak"
+    belum_ditinjau = "belum_ditinjau"
 
 class KoordinatAbsenKelas(Base) :
     __tablename__ = 'koordinat_absen_kelas'
@@ -20,9 +26,13 @@ class KoordinatAbsenKelas(Base) :
     latitude = Column(Float)
     longitude = Column(Float)
     radius_absen_meter = Column(Float)
+    id_tahun = Column(Integer, ForeignKey('tahun_sekolah.id'),nullable=False)
+    id_sekolah = Column(Integer, ForeignKey('sekolah.id'),nullable=False)
 
     kelas = relationship("Kelas", back_populates="koordinat_absen")
-
+    jadwal = relationship("Jadwal", back_populates="koordinat")
+    tahun = relationship("TahunSekolah", back_populates="koordinat_absen")
+    sekolah = relationship("Sekolah", back_populates="koordinat_absen")
 class Absen(Base):
     __tablename__ = 'absen'
 
@@ -46,9 +56,13 @@ class AbsenDetail(Base):
 
     id = Column(Integer, primary_key=True)
     id_absen = Column(Integer, ForeignKey('absen.id'), nullable=False)
-    catatan = Column(String, nullable=False)
+    catatan = Column(String, nullable=True)
+    status_tinjauan = Column(Enum(StatusTinjauanEnum),nullable=True, default=StatusTinjauanEnum.belum_ditinjau.value)
+    id_peninjau = Column(Integer, ForeignKey('petugas_BK.id'), nullable=True)
+    tanggal_tinjauan = Column(Date, nullable=True)
 
     absen = relationship("Absen", back_populates="detail")
+    petugas_bk = relationship("PetugasBK", back_populates="absen_detail")
 
     def __repr__(self):
         return f"<AbsenDetail(id={self.id}, id_absen='{self.id_absen}', catatan='{self.catatan}')>"

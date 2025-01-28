@@ -7,7 +7,6 @@ from ..domain.schemas.sekolah_schema import AdminWithSekolah,AdminBase
 
 # jurusan dan kelas
 from ..domain.admin.jurusan_kelas.jurusanKelasSchema import AddJurusanRequest, UpdateJurusanRequest,AddKelasRequest,UpdateKelasRequest
-
 from ..domain.schemas.kelasJurusan_schema import JurusanBase,JurusanWithKelas,KelasBase,KelasWithJurusan
 from ..domain.admin.jurusan_kelas import jurusanKelasService
 
@@ -49,7 +48,7 @@ from ..domain.admin.laporan_siswa import laporanSiswaService
 from ..domain.admin.laporan_siswa.laporanSiswaSchema import FilterLaporanSiswaQuery,ResponseLaporanSiswaPag
 from ..domain.schemas.laporanSiswa_schema import LaporanSiswaDetail
 
-# laporan guru walad
+# laporan guru walas
 from ..domain.admin.laporan_guru_walas import laporanGuruWalasService
 from ..domain.admin.laporan_guru_walas.laporanGuruWalasSchema import FilterLaporanGuruWalasQuery,ResponseLaporanGuruWalasPag
 from ..domain.schemas.laporanGuruWalas_schema import LaporanGuruWalasDetail
@@ -77,7 +76,7 @@ from ..domain.schemas.absen_schema import AbsenWithSiswaDetail
 # koodinat absen
 from ..domain.admin.koordinat_absen_kelas import koordinatAbsenKelasService
 from ..domain.admin.koordinat_absen_kelas.koordinatAbsenKelasSchema import FilterKoordinatAbsenKelasQuery,ResponseKoordinatAbsenKelasPag
-from ..domain.schemas.absen_schema import KoordinatAbsenKelasBase
+from ..domain.schemas.koordinatAbsen_schema import KoordinatAbsenKelasBase
 
 # auth depends
 from ..auth.auth_depends.admin.depend_auth_admin import adminAuth
@@ -195,8 +194,8 @@ async def addMapel(mapel : AddMapelRequest,admin : dict = Depends(getAdminAuth),
     return await mapelService.addMapel(admin["id_sekolah"],mapel,session)
 
 @adminRouter.get("/mapel",response_model=ApiResponse[list[MapelBase]],tags=["ADMIN/MAPEL"])
-async def getAllMapel(admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
-    return await mapelService.getAllMapel(admin["id_sekolah"],session)
+async def getAllMapel(id_tahun : int,admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
+    return await mapelService.getAllMapel(admin["id_sekolah"],id_tahun,session)
 
 @adminRouter.put("/mapel/{id_mapel}",response_model=ApiResponse[MapelBase],tags=["ADMIN/MAPEL"])
 async def updateMapel(id_mapel : int,mapel : UpdateMapelRequest | None = UpdateMapelRequest(),admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :

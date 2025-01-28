@@ -1,11 +1,20 @@
 from pydantic import BaseModel
-from .siswa_schema import SiswaBase
+from .siswa_schema import SiswaBase, SiswaWithKelasWalas, SiswaWithKelas
+from .jadwal_schema import JadwalWithKoordinatGuruMapel, JadwalWithKoordinat, JadwalWithMapel
 from datetime import date,time
-from ...models.absen_model import StatusAbsenEnum
+from ...models.absen_model import StatusAbsenEnum, StatusTinjauanEnum
+from ..schemas.petugasBK_schema import PetugasBkBase
+
 class AbsenDetailBase(BaseModel) :
     id : int
     id_absen : int
     catatan : str
+    status_tinjauan : StatusTinjauanEnum
+    id_peninjau : int | None
+    tanggal_tinjauan : date | None
+
+class AbsenDetailWithPetugasBK(AbsenDetailBase) :
+    petugas_bk : PetugasBkBase | None
 
 class AbsenBase(BaseModel) :
     id : int
@@ -16,14 +25,33 @@ class AbsenBase(BaseModel) :
     file : str
     status : StatusAbsenEnum
 
+class AbsenWithSiswa(AbsenBase) :
+    siswa : SiswaBase
+
+class AbsenWithJadwalMapel(AbsenBase) :
+    jadwal : JadwalWithMapel
+
+class AbsenWithDetail(AbsenBase) :
+    detail : AbsenDetailBase | None = None
+    
+class AbsenWithSiswaKelas(AbsenBase) :
+    siswa : SiswaWithKelas
+
+class AbsenWithSiswaKelasWalasDetail(AbsenBase) :
+    siswa : SiswaWithKelasWalas
+    detail : AbsenDetailWithPetugasBK | None = None
+
 class AbsenWithSiswaDetail(AbsenBase) :
     siswa : SiswaBase
-    detail : AbsenDetailBase
+    detail : AbsenDetailBase | None = None
 
-class KoordinatAbsenKelasBase(BaseModel) :
-    id : int
-    id_kelas : int
-    nama_tempat : str
-    latitude : float
-    longitude : float
-    radius_absen_meter : float
+class AbsenWithJadwalMapel(AbsenBase) :
+    jadwal : JadwalWithMapel
+
+# response
+class GetAbsenTinjauanResponse(AbsenWithSiswaKelasWalasDetail) :
+    jadwal : JadwalWithKoordinatGuruMapel
+    
+class GetAbsenHarianResponse(AbsenWithSiswa) :
+    detail : AbsenDetailWithPetugasBK
+    jadwal : JadwalWithKoordinat
