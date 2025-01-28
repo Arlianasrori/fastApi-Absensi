@@ -36,7 +36,7 @@ async def getStatistikAbsen(guruWalas : dict = Depends(getWalasAuth),session : s
     return await absenService.getStatistikAbsen(guruWalas,session)
 
 @guruWalasRouter.get("/absen/histori",response_model=ApiResponse[list[AbsenBase]],tags=["GURUWALAS/ABSEN"])
-async def getAbsenBySiswa(guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
+async def getHistoriAbsen(guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
     return await absenService.getHistoriAbsen(guruWalas,session)
 
 @guruWalasRouter.get("/absen/kelas",response_model=ApiResponse[GetAbsenInKelasResponse],tags=["GURUWALAS/ABSEN"])

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from ...schemas.pagination_schema import PaginationBase
 from ...schemas.absen_schema import AbsenBase
+from ...schemas.siswa_schema import SiswaBase
 # from ....models.absen_model import StatusAbsenEnum , StatusTinjauanEnum
 # from ...schemas.guruWalas_schema import GuruWalasBase
 # from ...schemas.absen_schema import AbsenWithSiswaKelas,AbsenBase
@@ -16,13 +17,16 @@ class GetAbsenFilterQuery(BaseModel) :
 class GetAbsenInKelasResponse(PaginationBase) :
     absen : dict[str,dict[int , AbsenBase]]
     
-    
 class GetAbsenBySiswaFilterQuery(BaseModel) :
     tanggal : date 
     id_siswa : int 
 
+class AbsenByJadwalResponse(BaseModel) :
+    siswa : SiswaBase
+    absen : AbsenBase | None
+
 class GetAbsenByJadwalResponse(PaginationBase) :
-    absen : list[AbsenBase | None]
+    absen : list[AbsenByJadwalResponse]
     siswa_hadir : int
     waktu_belajar : int
 

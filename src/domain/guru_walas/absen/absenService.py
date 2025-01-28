@@ -52,10 +52,13 @@ async def getAllAbsenInKelas(walas : dict,query : GetAbsenFilterQuery,session : 
 
     findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa)).where(and_(Absen.siswa.and_(Siswa.id_kelas == walas["id_kelas"]),Absen.tanggal == query.tanggal,Absen.id_siswa.in_(idSiswaList))))).scalars().all()
     
-    dayNow : dict = await get_day()
-    findJadwal = (await session.execute(select(Jadwal).where(and_(Jadwal.id_kelas == walas["id_kelas"],Jadwal.hari == dayNow["day_name"].value)).order_by(Jadwal.jam_mulai.asc()))).scalars().all()
+    locale_id = Locale('id', 'ID')
+    dayName = format_date(query.tanggal, format="EEEE", locale=locale_id).lower()
 
-    print(findJadwal,dayNow["day_name"].value)
+    findJadwal = (await session.execute(select(Jadwal).where(and_(Jadwal.id_kelas == walas["id_kelas"],Jadwal.hari == dayName)).order_by(Jadwal.jam_mulai.asc()))).scalars().all()
+
+    if len(findJadwal) == 0 :
+        raise HttpException(404,"Tidak ada jadwal pada tanggal yang diberikan")
     
     grouped_absen = {}
     for siswaItem in findSiswa :
@@ -136,9 +139,15 @@ async def getAbsenByJadwal(walas : dict,id_jadwal : int,query : GetAbsenFilterQu
 
     findAbsen = (await session.execute(select(Absen).where(and_(Absen.id_jadwal == id_jadwal,Absen.tanggal == query.tanggal, Absen.siswa.and_(Siswa.id_kelas == walas["id_kelas"]))).order_by(Siswa.nama.asc()).limit(query.limit).offset((query.offset - 1) * query.limit))).scalars().all()
 
+    findSiswa = (await session.execute(select(Siswa).where(Siswa.id_kelas == query.id_kelas).order_by(Siswa.nama.asc()).limit(query.limit).offset((query.offset - 1) * query.limit))).scalars().all()
+
+    grouped_absen = []
+    for siswaItem in findSiswa :
+        absenSiswa = list(filter(lambda x: x.id_siswa == siswaItem.id, findAbsen))
+        dictResponse = {"siswa" : siswaItem,"absen" : absenSiswa[0] if len(absenSiswa) > 0 else None}
+        grouped_absen.append(dictResponse)
+
     countDataSiswa = (await session.execute(select(func.count(Absen.id).label("count_data"),func.count(Absen.id).filter(Absen.status == StatusAbsenEnum.hadir.value).label("siswa_hadir")).where(and_(Absen.siswa.and_(Siswa.id_kelas == walas["id_kelas"]),Absen.tanggal == query.tanggal)))).one()._asdict()
-
-
     
     countPage = math.ceil(countDataSiswa["count_data"] / query.limit)
 
