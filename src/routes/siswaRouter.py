@@ -25,12 +25,13 @@ from ..domain.schemas.laporanSiswa_schema import LaporanSiswaBase,LaporanSiswaDe
 
 # absen
 from ..domain.siswa.absen import absenService
-from ..domain.siswa.absen.absenSchema import RekapAbsenMingguanResponse, CekAbsenSiswaTodayResponse, AbsenSiswaRequest
+from ..domain.siswa.absen.absenSchema import RekapAbsenMingguanResponse, CekAbsenSiswaTodayResponse, AbsenSiswaRequest, GetDetailAbsenSiswaResponse, GetAllLaporanAbsenSiswaResponse
 from ..domain.schemas.absen_schema import AbsenWithDetail
+
 # common
 from ..domain.schemas.response_schema import ApiResponse,MessageOnlyResponse
 from ..db.sessionDepedency import sessionDepedency
-
+from datetime import date
 siswaRouter = APIRouter(prefix="/siswa",dependencies=[Depends(siswaDependAuth)])
 
 # auth-profile
@@ -109,3 +110,11 @@ async def cekAbsenToday(siswa : dict = Depends(getSiswaAuth),session : sessionDe
 @siswaRouter.post("/absen",response_model=ApiResponse[AbsenWithDetail],tags=["SISWA/ABSEN"])
 async def absen(body : AbsenSiswaRequest = Depends(AbsenSiswaRequest.as_form),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await absenService.absenSiswa(siswa,body,session)
+
+@siswaRouter.get("/absen/laporan",response_model=ApiResponse[dict[date,list[GetAllLaporanAbsenSiswaResponse]]],tags=["SISWA/ABSEN"])
+async def getAllLaporanAbsen(month : int,year : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
+    return await absenService.getAllLaporanAbsenSiswa(siswa,month,year,session)
+
+@siswaRouter.get("/absen/detail/{id_absen}",response_model=ApiResponse[GetDetailAbsenSiswaResponse],tags=["SISWA/ABSEN"])
+async def getDetailAbsen(id_absen : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
+    return await absenService.getDetailAbsenSiswa(siswa,id_absen,session)
