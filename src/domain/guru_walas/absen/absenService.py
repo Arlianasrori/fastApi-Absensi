@@ -1,11 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select, and_, extract
-from sqlalchemy.orm import joinedload, subqueryload
+from sqlalchemy.orm import joinedload
 
 # models 
-from ....models.petugas_BK_model import PetugasBK, DistribusiPetugasBK
-from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum, StatusTinjauanEnum
-from ....models.siswa_model import Kelas, Siswa
+from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum
+from ....models.siswa_model import  Siswa
 from ....models.jadwal_model import Jadwal
 # schemas
 from .absenSchema import GetAbsenFilterQuery, GetAbsenBySiswaFilterQuery, GetAbsenInKelasResponse, GetAbsenByJadwalResponse, GetStatistikAbsenResponse
@@ -14,11 +13,6 @@ from ...schemas.jadwal_schema import JadwalWithMapelGuruMapel
 # common
 from ....error.errorHandling import HttpException
 from datetime import date
-from collections import defaultdict
-from ....utils.generateId_util import generate_id
-from ....utils.updateTable_util import updateTable
-from copy import deepcopy
-from ...common.get_day_today import get_day
 import math
 from babel import Locale
 from babel.dates import format_date

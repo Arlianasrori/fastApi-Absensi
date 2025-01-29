@@ -7,4 +7,3 @@ from . import notification_model
 from . import petugas_BK_model
 from . import sekolah_model
 from . import siswa_model
-from . import laporan_model

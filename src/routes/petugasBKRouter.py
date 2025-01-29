@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Depends, UploadFile
+from fastapi import APIRouter,Depends
 
 # auth-profile
 from ..domain.petugasBK.auth_profile import authProfileService
@@ -7,15 +7,14 @@ from ..domain.schemas.petugasBK_schema import PetugasBkBase,PetugasBKDetailWithS
 # absen
 from ..domain.petugasBK.absen import absenService
 from ..domain.petugasBK.absen.absenSchema import GetHistoriTinjauanAbsenResponse, StatistikAbsenResponse, GetAbsenByKelasFilterQuery, GetAbsenBySiswaFilterQuery, TinjauAbsenRequest, TinjauAbsenResponse,GetAllKelasTinjauanResponse, GetAbsenByKelasResponse
-from ..domain.schemas.absen_schema import AbsenBase, GetAbsenTinjauanResponse, GetAbsenHarianResponse,AbsenWithSiswa,AbsenWithJadwalMapel
-from ..domain.schemas.kelasJurusan_schema import KelasBase
+from ..domain.schemas.absen_schema import GetAbsenTinjauanResponse, GetAbsenHarianResponse,AbsenWithJadwalMapel
 
 # depends
 from ..auth.auth_depends.petugas_BK.depend_auth_petugasBK import petugasBKDependAuth 
 from ..auth.auth_depends.petugas_BK.get_guru_petugasBK_auth import getPetugasBKAuth
 
 # common
-from ..domain.schemas.response_schema import ApiResponse,MessageOnlyResponse
+from ..domain.schemas.response_schema import ApiResponse
 from ..db.sessionDepedency import sessionDepedency
 
 petugasBKRouter = APIRouter(prefix="/petugasBK",dependencies=[Depends(petugasBKDependAuth)])

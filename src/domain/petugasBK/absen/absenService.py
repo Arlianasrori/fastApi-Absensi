@@ -3,15 +3,13 @@ from sqlalchemy import func, select, and_
 from sqlalchemy.orm import joinedload, subqueryload
 
 # models 
-from ....models.petugas_BK_model import PetugasBK, DistribusiPetugasBK
+from ....models.petugas_BK_model import DistribusiPetugasBK
 from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum, StatusTinjauanEnum
 from ....models.siswa_model import Kelas, Siswa
 from ....models.jadwal_model import Jadwal
 # schemas
 from .absenSchema import GetHistoriTinjauanAbsenResponse, StatistikAbsenResponse, GetAbsenByKelasFilterQuery, GetAbsenBySiswaFilterQuery, TinjauAbsenRequest, TinjauAbsenResponse, GetAllKelasTinjauanResponse, GetAbsenByKelasResponse
-from ...schemas.absen_schema import AbsenBase, GetAbsenTinjauanResponse, GetAbsenHarianResponse,AbsenWithSiswa, AbsenWithJadwalMapel
-from ...schemas.kelasJurusan_schema import KelasBase
-from ...schemas.response_schema import MessageOnlyResponse
+from ...schemas.absen_schema import GetAbsenTinjauanResponse, GetAbsenHarianResponse,AbsenWithJadwalMapel
 # common
 from ....error.errorHandling import HttpException
 from datetime import date
@@ -19,7 +17,6 @@ from collections import defaultdict
 from ....utils.generateId_util import generate_id
 from ....utils.updateTable_util import updateTable
 from copy import deepcopy
-from ...common.get_day_today import get_day
 import math
 from babel import Locale
 from babel.dates import format_date
@@ -40,19 +37,6 @@ async def getStatistikAbsen(id_petugasBK : int,session : AsyncSession) -> Statis
         "msg" : "success",
         "data" : statistikAbsenDict
     }
-
-# # get history absen today
-# async def getHistoriAbsen(id_petugasBK : int,session : AsyncSession) -> list[AbsenDetail] :
-#     findDistribusiPetugasBK = (await session.execute(select(DistribusiPetugasBK).where(DistribusiPetugasBK.id_petugas_BK == id_petugasBK))).scalars().all()
-
-#     id_kelas_distribusi = [distribusi_petugas.id_kelas for distribusi_petugas in findDistribusiPetugasBK]
-
-#     findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.detail)).where(and_(Absen.siswa.and_(Siswa.id_kelas.in_(id_kelas_distribusi)))).order_by(Absen.tanggal.desc()).limit(3))).scalars().all()
-
-#     return {
-#         "msg" : "success",
-#         "data" : findAbsen
-#     }
 
 # get histori tinjauan absen today
 async def getHistoriTinjauanAbsen(id_petugasBK : int,session : AsyncSession) -> GetHistoriTinjauanAbsenResponse :
