@@ -1,5 +1,6 @@
+from collections import defaultdict
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import func, select, and_,or_
+from sqlalchemy import func, select, and_,or_, extract
 from sqlalchemy.orm import joinedload
 from fastapi import UploadFile
 
@@ -7,15 +8,15 @@ from fastapi import UploadFile
 from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum
 from ....models.jadwal_model import Jadwal
 # schemas
-from .absenSchema import RekapAbsenMingguanResponse, StatusRekapAbsenMIngguanEnum, CekAbsenSiswaTodayResponse, AbsenSiswaRequest
-from ...schemas.absen_schema import AbsenWithSiswaDetail
-from ..koordinat_absen.koordinatAbsenSchema import CekRadiusKoordinatRequest, CekRadiusKoordinatResponse
+from .absenSchema import RekapAbsenMingguanResponse, StatusRekapAbsenMIngguanEnum, CekAbsenSiswaTodayResponse, AbsenSiswaRequest, GetAllLaporanAbsenSiswaResponse, GetDetailAbsenSiswaResponse
+from ...schemas.absen_schema import AbsenWithSiswaDetail, GetAbsenHarianResponse
+from ..koordinat_absen.koordinatAbsenSchema import CekRadiusKoordinatRequest
 # service
 from ..koordinat_absen.koordinatAbsenService import cekRadiusKoordinat
 # common
 from ....error.errorHandling import HttpException
 from ...common.get_day_today import get_day
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import holidays
 import os
 from ....utils.generateId_util import generate_id
@@ -124,7 +125,7 @@ ABSEN_DOKUMEN_BASE_URL = os.getenv("DEV_LAPORAN_SISWA_BASE_URL")
 async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSession) -> AbsenWithSiswaDetail :
     cekRadius = await cekRadiusKoordinat(siswa,CekRadiusKoordinatRequest(latitude=body.latitude,longitude=body.longitude),session)
 
-    if not cekRadius["data"]["insideRadius"] :
+    if not cekRadius["data"]["insideRadius"] and body.status not in [StatusAbsenEnum.izin,StatusAbsenEnum.sakit,StatusAbsenEnum.dispen,StatusAbsenEnum.izin_telat]:
         raise HttpException(400,"anda berada diluar radius absen")
     
     cekAbsenToday = await cekAbsenSiswaToday(siswa,session)
@@ -175,3 +176,28 @@ async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSessio
                 "siswa" : siswa
             }
         }
+    
+async def getAllLaporanAbsenSiswa(siswa : dict,month : int,year : int,session : AsyncSession) -> dict[date,list[GetAllLaporanAbsenSiswaResponse]] :
+    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.jadwal).joinedload(Jadwal.mapel)).where(and_(Absen.id_siswa == siswa["id"],extract("month",Absen.tanggal) == month,extract("year",Absen.tanggal) == year)).order_by(Absen.tanggal.desc()))).scalars().all()
+
+    absenResponse = defaultdict(list)
+
+    for absen in findAbsen :
+        absenResponse[absen.tanggal].append(absen)
+
+
+    return {
+        "msg" : "success",
+        "data" : absenResponse
+    }
+
+async def getDetailAbsenSiswa(siswa : dict,id_absen : int,session : AsyncSession) -> GetDetailAbsenSiswaResponse :
+    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.detail),joinedload(Absen.siswa),joinedload(Absen.jadwal).options(joinedload(Jadwal.koordinat),joinedload(Jadwal.mapel))).where(and_(Absen.id_siswa == siswa["id"],Absen.id == id_absen)))).scalar_one_or_none()
+
+    if findAbsen is None :
+        raise HttpException(404,"Absen tidak ditemukan")
+
+    return {
+        "msg" : "success",
+        "data" : findAbsen
+    }
