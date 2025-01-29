@@ -2,7 +2,7 @@ from fastapi import APIRouter,Depends, UploadFile
 
 # auth-profile
 from ..domain.siswa.auth_profile import authProfileService
-from ..domain.schemas.siswa_schema import SiswaBase, SiswaWithJurusanKelasAlamat
+from ..domain.schemas.siswa_schema import SiswaBase, SiswaDetailWithSekolah
 
 # jadwal
 from ..domain.siswa.jadwal import jadwalService
@@ -26,6 +26,7 @@ from ..domain.schemas.laporanSiswa_schema import LaporanSiswaBase,LaporanSiswaDe
 # absen
 from ..domain.siswa.absen import absenService
 from ..domain.siswa.absen.absenSchema import RekapAbsenMingguanResponse, CekAbsenSiswaTodayResponse, AbsenSiswaRequest, GetDetailAbsenSiswaResponse, GetAllLaporanAbsenSiswaResponse
+from ..domain.schemas.absen_schema import AbsenWithDetail
 
 # common
 from ..domain.schemas.response_schema import ApiResponse,MessageOnlyResponse
@@ -38,7 +39,7 @@ siswaRouter = APIRouter(prefix="/siswa",dependencies=[Depends(siswaDependAuth)])
 async def getSiswa(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await authProfileService.getSiswa(siswa["id"],session)
 
-@siswaRouter.get("/profile",response_model=ApiResponse[SiswaWithJurusanKelasAlamat],tags=["SISWA/AUTH-PROFILE"])
+@siswaRouter.get("/profile",response_model=ApiResponse[SiswaDetailWithSekolah],tags=["SISWA/AUTH-PROFILE"])
 async def getProfileSiswa(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await authProfileService.getProfile(siswa["id"],session)
 
@@ -106,7 +107,7 @@ async def getRekapAbsenMingguan(siswa : dict = Depends(getSiswaAuth),session : s
 async def cekAbsenToday(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await absenService.cekAbsenSiswaToday(siswa,session)
 
-@siswaRouter.post("/absen",response_model=ApiResponse[CekAbsenSiswaTodayResponse],tags=["SISWA/ABSEN"])
+@siswaRouter.post("/absen",response_model=ApiResponse[AbsenWithDetail],tags=["SISWA/ABSEN"])
 async def absen(body : AbsenSiswaRequest = Depends(AbsenSiswaRequest.as_form),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await absenService.absenSiswa(siswa,body,session)
 

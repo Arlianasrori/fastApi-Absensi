@@ -3,6 +3,8 @@ from ...types.user_types import GenderType
 from datetime import date
 from .mapel_schema import MapelBase
 from .alamat_schema import AlamatBase
+from .sekolah_schema import SekolahBase
+
 class GuruMapelBase(BaseModel) :
     id : int
     nip : str
@@ -28,3 +30,6 @@ class GuruMapelWithAlamat(GuruMapelBase) :
 class GuruMapeldetail(GuruMapelBase) :
     alamat : AlamatBase
     mapel : MapelBase
+
+class GuruMapelDetailWithSekolah(GuruMapeldetail) :
+    sekolah : SekolahBase

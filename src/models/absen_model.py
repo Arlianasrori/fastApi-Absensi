@@ -44,8 +44,8 @@ class Absen(Base):
     file = Column(String, nullable=False)
     status = Column(Enum(StatusAbsenEnum), nullable=False)
 
-    jadwal = relationship("Jadwal", back_populates="absen")
-    siswa = relationship("Siswa", back_populates="absen")
+    jadwal = relationship("Jadwal", back_populates="absen",uselist=False)
+    siswa = relationship("Siswa", back_populates="absen",uselist=False)
     detail = relationship("AbsenDetail",uselist=False, back_populates="absen")
     
     def __repr__(self):
@@ -56,10 +56,10 @@ class AbsenDetail(Base):
 
     id = Column(Integer, primary_key=True)
     id_absen = Column(Integer, ForeignKey('absen.id'), nullable=False)
-    catatan = Column(String, nullable=False)
-    diterima = Column(Enum(StatusTinjauanEnum),nullable=True, default=StatusTinjauanEnum.belum_ditinjau.value)
+    catatan = Column(String, nullable=True)
+    status_tinjauan = Column(Enum(StatusTinjauanEnum),nullable=True, default=StatusTinjauanEnum.belum_ditinjau.value)
     id_peninjau = Column(Integer, ForeignKey('petugas_BK.id'), nullable=True)
-    tanggal_peninjau = Column(Date, nullable=True)
+    tanggal_tinjauan = Column(Date, nullable=True)
 
     absen = relationship("Absen", back_populates="detail")
     petugas_bk = relationship("PetugasBK", back_populates="absen_detail")

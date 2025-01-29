@@ -9,8 +9,8 @@ from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum
 from ....models.jadwal_model import Jadwal
 # schemas
 from .absenSchema import RekapAbsenMingguanResponse, StatusRekapAbsenMIngguanEnum, CekAbsenSiswaTodayResponse, AbsenSiswaRequest, GetAllLaporanAbsenSiswaResponse, GetDetailAbsenSiswaResponse
-from ...schemas.absen_schema import AbsenWithSiswaDetail, GetAbsenHarianResponse
-from ..koordinat_absen.koordinatAbsenSchema import CekRadiusKoordinatRequest
+from ...schemas.absen_schema import AbsenWithDetail
+from ..koordinat_absen.koordinatAbsenSchema import CekRadiusKoordinatRequest, CekRadiusKoordinatResponse
 # service
 from ..koordinat_absen.koordinatAbsenService import cekRadiusKoordinat
 # common
@@ -122,7 +122,7 @@ async def cekAbsenSiswaToday(siswa : dict,session : AsyncSession) -> CekAbsenSis
 
 ABSEN_DOKUMEN_STORE = os.getenv("DEV_LAPORAN_SISWA_STORE")
 ABSEN_DOKUMEN_BASE_URL = os.getenv("DEV_LAPORAN_SISWA_BASE_URL")
-async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSession) -> AbsenWithSiswaDetail :
+async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSession) -> AbsenWithDetail :
     cekRadius = await cekRadiusKoordinat(siswa,CekRadiusKoordinatRequest(latitude=body.latitude,longitude=body.longitude),session)
 
     if not cekRadius["data"]["insideRadius"] and body.status not in [StatusAbsenEnum.izin,StatusAbsenEnum.sakit,StatusAbsenEnum.dispen,StatusAbsenEnum.izin_telat]:
@@ -164,7 +164,7 @@ async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSessio
             if not body.catatan:
                 raise HttpException(400,"catatan wajib diisi")
             else :
-                absenDetailMapping = {"id" : generate_id(),"id_absen" : absenMapping["id"],"catatan" : body.catatan}
+                absenDetailMapping = {"id" : generate_id(),"id_absen" : absenMapping["id"],"catatan" : body.catatan,"status_tinjauan" : None,"id_peninjau" : None, "tanggal_tinjauan" : None}
                 session.add(AbsenDetail(**absenDetailMapping))
 
         await session.commit()
@@ -172,8 +172,7 @@ async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSessio
             "msg" : "success",
             "data" : {
                 **absenMapping,
-                "detail" : absenDetailMapping,
-                "siswa" : siswa
+                "detail" : absenDetailMapping
             }
         }
     
