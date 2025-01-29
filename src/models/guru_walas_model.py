@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime, Boolean,UniqueConstraint, Date
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, UniqueConstraint, Date
 from sqlalchemy.orm import relationship
 from ..db.db import Base
 from ..types.user_types import GenderType

@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Depends, UploadFile
+from fastapi import APIRouter,Depends
 
 # auth-profile
 from ..domain.guru_walas.auth_profile import authProfileService
@@ -16,7 +16,7 @@ from ..auth.auth_depends.guru_walas.depend_auth_guru_walas import guruWalasDepen
 from ..auth.auth_depends.guru_walas.get_guru_walas_auth import getWalasAuth
 
 # common
-from ..domain.schemas.response_schema import ApiResponse,MessageOnlyResponse
+from ..domain.schemas.response_schema import ApiResponse
 from ..db.sessionDepedency import sessionDepedency
 
 guruWalasRouter = APIRouter(prefix="/guru-walas",dependencies=[Depends(guruWalasDependAuth)])

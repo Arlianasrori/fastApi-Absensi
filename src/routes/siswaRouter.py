@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Depends, UploadFile
+from fastapi import APIRouter,Depends
 
 # auth-profile
 from ..domain.siswa.auth_profile import authProfileService
@@ -18,18 +18,13 @@ from ..domain.siswa.koordinat_absen import koordinatAbsenService
 from ..domain.schemas.koordinatAbsen_schema import KoordinatAbsenKelasBase, KoordinatAbsenDetail
 from ..domain.siswa.koordinat_absen.koordinatAbsenSchema import CekRadiusKoordinatRequest, CekRadiusKoordinatResponse
 
-# laporan siswa
-from ..domain.siswa.laporan import laporanService
-from ..domain.siswa.laporan.laporanSchema import FilterQueryLaporan, AddLaporanSiswaRequest,UpdateLaporanSiswaRequest
-from ..domain.schemas.laporanSiswa_schema import LaporanSiswaBase,LaporanSiswaDetail, LaporanSiswaWithFile
-
 # absen
 from ..domain.siswa.absen import absenService
 from ..domain.siswa.absen.absenSchema import RekapAbsenMingguanResponse, CekAbsenSiswaTodayResponse, AbsenSiswaRequest, GetDetailAbsenSiswaResponse, GetAllLaporanAbsenSiswaResponse
 from ..domain.schemas.absen_schema import AbsenWithDetail
 
 # common
-from ..domain.schemas.response_schema import ApiResponse,MessageOnlyResponse
+from ..domain.schemas.response_schema import ApiResponse
 from ..db.sessionDepedency import sessionDepedency
 from datetime import date
 siswaRouter = APIRouter(prefix="/siswa",dependencies=[Depends(siswaDependAuth)])
@@ -68,35 +63,6 @@ async def getAllJadwal(query : FilterJadwalQuery = Depends(),siswa : dict = Depe
 @siswaRouter.get("/jadwal/today",response_model=ApiResponse[JadwalTodayResponse],tags=["SISWA/JADWAL"])
 async def getAllJadwalToday(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await jadwalService.getAllJadwalToday(siswa,session)
-
-# laporan siswa
-@siswaRouter.post("/laporan",response_model=ApiResponse[LaporanSiswaBase],tags=["SISWA/LAPORAN"])
-async def addLaporan(laporan : AddLaporanSiswaRequest,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
-    return await laporanService.addLaporan(siswa["id"],laporan,session)
-
-@siswaRouter.post("/laporan/file/{id_laporan}",response_model=ApiResponse[LaporanSiswaWithFile],tags=["SISWA/LAPORAN"])
-async def addFileLaporan(id_laporan : int,file : UploadFile,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
-    return await laporanService.addFileLaporan(siswa["id"],id_laporan,file,session)
-
-@siswaRouter.delete("/laporan/file/{id_file_laporan}",response_model=MessageOnlyResponse,tags=["SISWA/LAPORAN"])
-async def deleteFileLaporan(id_file_laporan : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
-    return await laporanService.deleteFileLaporan(siswa["id"],id_file_laporan,session)
-
-@siswaRouter.delete("/laporan/{id_laporan}",response_model=ApiResponse[LaporanSiswaDetail],tags=["SISWA/LAPORAN"])
-async def deleteLaporan(id_laporan : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
-    return await laporanService.deleteLaporan(siswa["id"],id_laporan,session)
-
-@siswaRouter.put("/laporan/{id_laporan}",response_model=ApiResponse[LaporanSiswaBase],tags=["SISWA/LAPORAN"])
-async def updateLaporan(id_laporan : int,laporan : UpdateLaporanSiswaRequest | dict = UpdateLaporanSiswaRequest(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
-    return await laporanService.updateLaporan(siswa["id"],id_laporan,laporan,session)
-
-@siswaRouter.get("/laporan",response_model=ApiResponse[list[LaporanSiswaBase]],tags=["SISWA/LAPORAN"])
-async def getAllLaporan(query : FilterQueryLaporan = Depends(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
-    return await laporanService.getAllLaporan(siswa,query,session)
-
-@siswaRouter.get("/laporan/{id_laporan}",response_model=ApiResponse[LaporanSiswaDetail],tags=["SISWA/LAPORAN"])
-async def getLaporanById(id_laporan : int,session : sessionDepedency = None) :
-    return await laporanService.getLaporanById(id_laporan,session)
 
 # absen
 @siswaRouter.get("/absen/rekap-mingguan",response_model=ApiResponse[RekapAbsenMingguanResponse],tags=["SISWA/ABSEN"])

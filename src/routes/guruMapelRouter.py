@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Depends, UploadFile
+from fastapi import APIRouter,Depends
 
 # auth-profile
 from ..domain.guru_mapel.auth_profile import authProfileService
@@ -15,7 +15,7 @@ from ..auth.auth_depends.guru_mapel.depend_auth_guru_mapel import guruMapelDepen
 from ..auth.auth_depends.guru_mapel.get_guru_mapel_auth import getMapelAuth
 
 # common
-from ..domain.schemas.response_schema import ApiResponse,MessageOnlyResponse
+from ..domain.schemas.response_schema import ApiResponse
 from ..db.sessionDepedency import sessionDepedency
 
 guruMapelRouter = APIRouter(prefix="/guru-mapel",dependencies=[Depends(guruMapelDependAuth)])

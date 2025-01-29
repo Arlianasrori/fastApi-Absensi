@@ -10,7 +10,7 @@ from ....models.jadwal_model import Jadwal
 # schemas
 from .absenSchema import RekapAbsenMingguanResponse, StatusRekapAbsenMIngguanEnum, CekAbsenSiswaTodayResponse, AbsenSiswaRequest, GetAllLaporanAbsenSiswaResponse, GetDetailAbsenSiswaResponse
 from ...schemas.absen_schema import AbsenWithDetail
-from ..koordinat_absen.koordinatAbsenSchema import CekRadiusKoordinatRequest, CekRadiusKoordinatResponse
+from ..koordinat_absen.koordinatAbsenSchema import CekRadiusKoordinatRequest
 # service
 from ..koordinat_absen.koordinatAbsenService import cekRadiusKoordinat
 # common
