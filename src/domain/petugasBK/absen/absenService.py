@@ -8,7 +8,7 @@ from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum, StatusTi
 from ....models.siswa_model import Kelas, Siswa
 from ....models.jadwal_model import Jadwal
 # schemas
-from .absenSchema import GetHistoriTinjauanAbsenResponse, StatistikAbsenResponse, GetAbsenByKelasFilterQuery, GetAbsenBySiswaFilterQuery, TinjauAbsenRequest, TinjauAbsenResponse, GetAllKelasTinjauanResponse
+from .absenSchema import GetHistoriTinjauanAbsenResponse, StatistikAbsenResponse, GetAbsenByKelasFilterQuery, GetAbsenBySiswaFilterQuery, TinjauAbsenRequest, TinjauAbsenResponse, GetAllKelasTinjauanResponse, GetAbsenByKelasResponse
 from ...schemas.absen_schema import AbsenBase, GetAbsenTinjauanResponse, GetAbsenHarianResponse,AbsenWithSiswa, AbsenWithJadwalMapel
 from ...schemas.kelasJurusan_schema import KelasBase
 from ...schemas.response_schema import MessageOnlyResponse
@@ -83,20 +83,24 @@ async def getDetailTinjauanAbsensiById(id_absen : int,session : AsyncSession) ->
 
 # get all kelas yang ditinjau atau didistribusi untuk guru bk
 async def getAllKelasTinjauan(id_petugasBK : int,session : AsyncSession) -> GetAllKelasTinjauanResponse :
-    findDistribusiPetugasBK = (await session.execute(select(DistribusiPetugasBK).options(joinedload(DistribusiPetugasBK.kelas).options(joinedload(Kelas.guru_walas),joinedload(Kelas.siswa))).where(DistribusiPetugasBK.id_petugas_BK == id_petugasBK))).scalars().all()
+    findDistribusiPetugasBK = (await session.execute(select(DistribusiPetugasBK).options(joinedload(DistribusiPetugasBK.kelas).options(joinedload(Kelas.guru_walas),subqueryload(Kelas.siswa))).where(DistribusiPetugasBK.id_petugas_BK == id_petugasBK))).scalars().all()
 
     kelasResponse = [distribusi_petugas.kelas for distribusi_petugas in findDistribusiPetugasBK]
 
     return {
         "msg" : "success",
         "data" : {
-            "kelas" : kelasResponse,
-            "jumlah_siswa" : len(kelasResponse[0].siswa)
+            "kelas" : kelasResponse
         }
     }
 
 # get all absen by kelas
-async def getAbsenByKelas(query : GetAbsenByKelasFilterQuery,session : AsyncSession) -> dict[str,dict[int : AbsenBase]] :
+async def getAbsenByKelas(query : GetAbsenByKelasFilterQuery,session : AsyncSession) -> GetAbsenByKelasResponse:
+    findKelas = (await session.execute(select(Kelas).options(subqueryload(Kelas.siswa)).where(and_(Kelas.id == query.id_kelas)))).scalar_one_or_none()
+    
+    if findKelas is None :
+        raise HttpException(404,"kelas tidak ditemukan")
+    
     findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa)).where(and_(Absen.siswa.and_(Siswa.id_kelas == query.id_kelas),Absen.tanggal == query.tanggal)))).scalars().all()
     
     findSiswa = (await session.execute(select(Siswa).where(Siswa.id_kelas == query.id_kelas).order_by(Siswa.nama.asc()))).scalars().all()
@@ -122,7 +126,10 @@ async def getAbsenByKelas(query : GetAbsenByKelasFilterQuery,session : AsyncSess
 
     return {
         "msg" : "success",
-        "data" : grouped_absen
+        "data" : {
+            "absen" : grouped_absen,
+            "jumlah_siswa" : len(findKelas.siswa)
+        }
     }
 
 # get all absen by siswa

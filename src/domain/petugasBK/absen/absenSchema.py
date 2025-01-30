@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from ....models.absen_model import StatusAbsenEnum , StatusTinjauanEnum
 from ...schemas.guruWalas_schema import GuruWalasBase
 from ...schemas.absen_schema import AbsenWithSiswaKelas,AbsenBase
-from ...schemas.kelasJurusan_schema import KelasWithGuruWalas
+from ...schemas.kelasJurusan_schema import  KelasBase
 from datetime import date
 from ...schemas.petugasBK_schema import PetugasBkBase
 
@@ -34,9 +34,10 @@ class TinjauAbsenResponse(BaseModel) :
 
 class GetAbsenByKelasResponse(BaseModel) :
     jumlah_siswa : int
-    guru_walas : GuruWalasBase
-    absen : dict[str,dict[int,AbsenBase | None]]
-
+    absen : dict[str,dict[int , AbsenBase]]
+    
+class KelasWithWalas(KelasBase) :
+    guru_walas : GuruWalasBase | None = None
+    
 class GetAllKelasTinjauanResponse(BaseModel) :
-    kelas : list[KelasWithGuruWalas]
-    jumlah_siswa : int
+    kelas : list[KelasWithWalas]
