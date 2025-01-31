@@ -2,7 +2,9 @@ from fastapi import APIRouter,Depends
 
 # auth-profile
 from ..domain.siswa.auth_profile import authProfileService
-from ..domain.schemas.siswa_schema import SiswaBase, SiswaDetailWithSekolah
+from ..domain.schemas.siswa_schema import SiswaBase, SiswaDetailWithSekolah, SiswaWithAlamat
+from ..domain.schemas.alamat_schema import UpdateAlamatBody
+from ..domain.siswa.auth_profile.authProfileSchema import UpdateProfileRequest
 
 # jadwal
 from ..domain.siswa.jadwal import jadwalService
@@ -37,6 +39,15 @@ async def getSiswa(siswa : dict = Depends(getSiswaAuth),session : sessionDepeden
 @siswaRouter.get("/profile",response_model=ApiResponse[SiswaDetailWithSekolah],tags=["SISWA/AUTH-PROFILE"])
 async def getProfileSiswa(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await authProfileService.getProfile(siswa["id"],session)
+
+@siswaRouter.put("/profile",response_model=ApiResponse[SiswaWithAlamat],tags=["SISWA/AUTH-PROFILE"])
+async def updateProfileSiswa(body : UpdateProfileRequest = UpdateProfileRequest(),alamat : UpdateAlamatBody = UpdateAlamatBody(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
+    return await authProfileService.updateProfile(siswa["id"],body,alamat,session)
+
+@siswaRouter.patch("/profile/foto_profile",response_model=ApiResponse[SiswaBase],tags=["SISWA/AUTH-PROFILE"])
+async def add_update_profile(foto_profile : UploadFile,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
+    return await authProfileService.add_update_foto_profile(siswa["id"],foto_profile,session)
+
 
 # koordinat-absen
 @siswaRouter.get("/koordinat-absen",response_model=ApiResponse[list[KoordinatAbsenKelasBase]],tags=["SISWA/KOORDINAT-ABSEN"])
