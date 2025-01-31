@@ -10,6 +10,8 @@ from ....models.jadwal_model import Jadwal
 # schemas
 from .absenSchema import GetHistoriTinjauanAbsenResponse, StatistikAbsenResponse, GetAbsenByKelasFilterQuery, GetAbsenBySiswaFilterQuery, TinjauAbsenRequest, TinjauAbsenResponse, GetAllKelasTinjauanResponse, GetAbsenByKelasResponse
 from ...schemas.absen_schema import GetAbsenTinjauanResponse, GetAbsenHarianResponse,AbsenWithJadwalMapel
+# services
+from ..notification.notificationService import sendNotificationToSiswaWalasMapelSync
 # common
 from ....error.errorHandling import HttpException
 from datetime import date
@@ -20,9 +22,10 @@ from copy import deepcopy
 import math
 from babel import Locale
 from babel.dates import format_date
+from multiprocessing import Process
 
 # daftar status absen yang dapat ditinjau: diterima atau ditolak oleh petugasBK
-liststatusForTinjau = [StatusAbsenEnum.dispen.value,StatusAbsenEnum.sakit.value,StatusAbsenEnum.telat.value,StatusAbsenEnum.izin_telat.value, StatusAbsenEnum.izin.value]
+liststatusForTinjau = [StatusAbsenEnum.dispen,StatusAbsenEnum.sakit,StatusAbsenEnum.telat,StatusAbsenEnum.izin_telat, StatusAbsenEnum.izin]
 # for get statistix=c absen today : jumlah absen diterima, ditolak, belum ditinjau
 async def getStatistikAbsen(id_petugasBK : int,session : AsyncSession) -> StatistikAbsenResponse :
     findDistribusiPetugasBK = (await session.execute(select(DistribusiPetugasBK).where(DistribusiPetugasBK.id_petugas_BK == id_petugasBK))).scalars().all()
@@ -157,7 +160,7 @@ async def getDetailAbsenHarian(id_absen : int,session : AsyncSession) -> GetAbse
     }
 
 async def tinjauAbsen(petugasBk : dict,id_absen : int,body : TinjauAbsenRequest, session : AsyncSession) -> TinjauAbsenResponse :
-    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.detail)).where(Absen.id == id_absen))).scalar_one_or_none()
+    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.detail),joinedload(Absen.siswa),joinedload(Absen.jadwal).joinedload(Jadwal.guru_mapel)).where(Absen.id == id_absen))).scalar_one_or_none()
 
     if findAbsen is None :
         raise HttpException(404,"absen tidak ditemukan")
@@ -176,6 +179,9 @@ async def tinjauAbsen(petugasBk : dict,id_absen : int,body : TinjauAbsenRequest,
     updateTable(updateDetailAbsenMapping,findAbsen.detail)
     absenDictCopy = deepcopy(findAbsen.__dict__)
     await session.commit()
+
+    proccess = Process(target=sendNotificationToSiswaWalasMapelSync,args=(petugasBk["id"],absenDictCopy["siswa"].__dict__,absenDictCopy["jadwal"].guru_mapel.id,absenDictCopy["status"].value,body.status_tinjauan.value))
+    proccess.start()
 
     return {
         "msg" : "success",

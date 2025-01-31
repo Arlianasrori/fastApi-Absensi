@@ -22,8 +22,12 @@ from ..domain.siswa.koordinat_absen.koordinatAbsenSchema import CekRadiusKoordin
 
 # absen
 from ..domain.siswa.absen import absenService
-from ..domain.siswa.absen.absenSchema import RekapAbsenMingguanResponse, CekAbsenSiswaTodayResponse, AbsenSiswaRequest, GetDetailAbsenSiswaResponse, GetAllLaporanAbsenSiswaResponse
+from ..domain.siswa.absen.absenSchema import RekapAbsenMingguanResponse, CekAbsenSiswaTodayResponse, AbsenSiswaRequest, GetDetailAbsenSiswaResponse, GetAllLaporanAbsenSiswaResponse,AbsenBase
 from ..domain.schemas.absen_schema import AbsenWithDetail
+
+# notification
+from ..domain.siswa.notification import notificationService
+from ..domain.schemas.notification_schema import NotificationModelBase, ResponseGetUnreadNotification
 
 # common
 from ..domain.schemas.response_schema import ApiResponse
@@ -95,3 +99,24 @@ async def getAllLaporanAbsen(month : int,year : int,siswa : dict = Depends(getSi
 @siswaRouter.get("/absen/detail/{id_absen}",response_model=ApiResponse[GetDetailAbsenSiswaResponse],tags=["SISWA/ABSEN"])
 async def getDetailAbsen(id_absen : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await absenService.getDetailAbsenSiswa(siswa,id_absen,session)
+
+@siswaRouter.get("/absen/histori",response_model=ApiResponse[list[AbsenBase]],tags=["SISWA/ABSEN"])
+async def getHistoriAbsen(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
+    return await absenService.getHistoriAbsenSiswa(siswa,session)
+
+# notification
+@siswaRouter.get("/notification",response_model=ApiResponse[dict[date,list[NotificationModelBase]]],tags=["SISWA/NOTIFICATION"])
+async def getAllNotification(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
+    return await notificationService.getAllNotification(siswa["id"],session)
+
+@siswaRouter.get("/notification/{id_notification}",response_model=ApiResponse[NotificationModelBase],tags=["SISWA/NOTIFICATION"])
+async def getNotificationById(id_notification : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
+    return await notificationService.getNotificationById(id_notification,siswa["id"],session)
+
+@siswaRouter.post("/notification/read/{id_notification}",response_model=ApiResponse[NotificationModelBase],tags=["SISWA/NOTIFICATION"])
+async def readNotification(id_notification : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
+    return await notificationService.readNotification(id_notification,siswa["id"],session)
+
+@siswaRouter.get("/notification/unread/count",response_model=ApiResponse[ResponseGetUnreadNotification],tags=["SISWA/NOTIFICATION"])
+async def getUnreadNotification(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
+    return await notificationService.getCountNotification(siswa["id"],session)

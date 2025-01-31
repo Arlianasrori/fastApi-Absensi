@@ -20,7 +20,7 @@ class GuruWalas(Base):
     password = Column(String(255), nullable=False)
     id_sekolah = Column(Integer, ForeignKey('sekolah.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False)
     id_tahun = Column(Integer, ForeignKey('tahun_sekolah.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False)
-    id_kelas = Column(Integer, ForeignKey('kelas.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False)
+    id_kelas = Column(Integer,ForeignKey('kelas.id', ondelete='CASCADE', onupdate='CASCADE'), unique=True, nullable=False)
     OTP_code = Column(Integer, nullable=True)
 
     # Relasi yang sudah ada
