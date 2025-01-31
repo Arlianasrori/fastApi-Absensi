@@ -28,6 +28,6 @@ async def getProfileguruMapel(guruMapel : dict = Depends(getMapelAuth),session :
 async def updateProfileGuruMapel(body : UpdateProfileRequest = UpdateProfileRequest(),alamat : UpdateAlamatBody = UpdateAlamatBody(),guruMapel : dict = Depends(getMapelAuth),session : sessionDepedency = None) :
     return await authProfileService.updateProfile(guruMapel["id"],body,alamat,session)
 
-@guruMapelRouter.patch("/profile/foto_profile/{id_guru_mapel}",response_model=ApiResponse[GuruMapelBase],tags=["GURUMAPEL/AUTH_PROFILE"])
-async def add_update_profile(id_guru_mapel : int,foto_profile : UploadFile,guruMapel : dict = Depends(getMapelAuth),session : sessionDepedency = None) :
-    return await authProfileService.add_update_foto_profile(id_guru_mapel,guruMapel["id_sekolah"],foto_profile,session)
+@guruMapelRouter.patch("/profile/foto_profile",response_model=ApiResponse[GuruMapelBase],tags=["GURUMAPEL/AUTH_PROFILE"])
+async def add_update_profile(foto_profile : UploadFile,guruMapel : dict = Depends(getMapelAuth),session : sessionDepedency = None) :
+    return await authProfileService.add_update_foto_profile(guruMapel["id"],foto_profile,session)

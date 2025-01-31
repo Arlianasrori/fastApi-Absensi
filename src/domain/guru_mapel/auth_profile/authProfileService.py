@@ -50,33 +50,19 @@ async def updateProfile(id_guru_mapel : int,body : UpdateProfileRequest,alamat :
     if alamat.model_dump(exclude_unset=True):
         updateTable(alamat,findGuruMapel.alamat)
 
+    guruMapelDictCopy = deepcopy(findGuruMapel.__dict__)
     await session.commit()
 
     return {
         "msg" : "success",
-        "data" : findGuruMapel
+        "data" : guruMapelDictCopy
     }
 
 PROFILE_STORE = os.getenv("DEV_FOTO_PROFILE_GURU_MAPEL_STORE")
 PROFILE_BASE_URL = os.getenv("DEV_FOTO_PROFILE_GURU_MAPEL_BASE_URL")
 
-async def add_update_foto_profile(id : int,id_sekolah : int,foto_profile : UploadFile,session : AsyncSession) -> GuruMapelBase :
-    """
-    Add or update the profile photo of a student.
-
-    Args:
-        id (int): The student ID.
-        id_sekolah (int): The school ID.
-        foto_profile (UploadFile): The profile photo file to be uploaded.
-        session (AsyncSession): The database session.
-
-    Returns:
-        SiswaBase: The updated student information.
-
-    Raises:
-        HttpException: If the student is not found or if the file is not an image.
-    """
-    findGuruMapel = (await session.execute(select(GuruMapel).where(and_(GuruMapel.id == id,GuruMapel.id_sekolah == id_sekolah)))).scalar_one_or_none()
+async def add_update_foto_profile(id : int,foto_profile : UploadFile,session : AsyncSession) -> GuruMapelBase :
+    findGuruMapel = (await session.execute(select(GuruMapel).where(GuruMapel.id == id))).scalar_one_or_none()
     if not findGuruMapel :
         raise HttpException(404,f"guru mapel tidak ditemukan")
 
@@ -101,10 +87,10 @@ async def add_update_foto_profile(id : int,id_sekolah : int,foto_profile : Uploa
         file_name_db = file_nama_db_split[-1]
         os.remove(f"{PROFILE_STORE}/{file_name_db}")
     
-    siswaDictCopy = deepcopy(findGuruMapel.__dict__)
+    guruMapelDictCopy = deepcopy(findGuruMapel.__dict__)
     await session.commit()
 
     return {
         "msg" : "success",
-        "data" : siswaDictCopy
+        "data" : guruMapelDictCopy
     }
