@@ -26,12 +26,12 @@ from multiprocessing import Process
 from ....utils.removeFile_util import removeFile
 
 async def AddGuruWalas(id_sekolah : int,guruWalas : AddGuruWalasRequest,alamat : AlamatBody,session : AsyncSession) -> GuruWalasDetail:
-    findGuruWalasByNirp = (await session.execute(select(GuruWalas).where(GuruWalas.nip == GuruWalas.nip))).scalar_one_or_none()
+    findGuruWalasByNirp = (await session.execute(select(GuruWalas).where(GuruWalas.nip == guruWalas.nip))).scalar_one_or_none()
     if findGuruWalasByNirp :
         raise HttpException(400,f"Guru walas dengan nip {guruWalas.nip} telah ditambahkan")
 
     
-    findGuruWalasByEmail = (await session.execute(select(GuruWalas).where(GuruWalas.email == GuruWalas.email))).scalar_one_or_none()
+    findGuruWalasByEmail = (await session.execute(select(GuruWalas).where(GuruWalas.email == guruWalas.email))).scalar_one_or_none()
     if findGuruWalasByEmail :
         raise HttpException(400,f"Guru walas dengan email {guruWalas.email} telah ditambahkan")
     
@@ -39,7 +39,7 @@ async def AddGuruWalas(id_sekolah : int,guruWalas : AddGuruWalasRequest,alamat :
     if not findKelas :
         raise HttpException(400,f"Kelas dengan id {guruWalas.id_kelas} tidak ditemukan")
 
-    findGuruWalasByNoTelepon = (await session.execute(select(GuruWalas).where(GuruWalas.no_telepon == GuruWalas.no_telepon))).scalar_one_or_none()
+    findGuruWalasByNoTelepon = (await session.execute(select(GuruWalas).where(GuruWalas.no_telepon == guruWalas.no_telepon))).scalar_one_or_none()
 
     if findGuruWalasByNoTelepon :
         raise HttpException(400,f"nomor telepon {guruWalas.no_telepon} sudah ditambahkan")

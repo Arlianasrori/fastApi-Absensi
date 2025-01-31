@@ -3,8 +3,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
 # models 
-from ....models.siswa_model import Siswa
-from ....models.jadwal_model import Jadwal, HariEnum
+from ....models.jadwal_model import Jadwal
 from ....models.absen_model import Absen
 # schemas
 from .jadwalSchema import GetHariContainsJadwalResponse, FilterJadwalQuery, JadwalTodayResponse
@@ -12,7 +11,6 @@ from ...schemas.jadwal_schema import JadwalDetail
 # types
 from ....types.hari_list import dayCodeSet 
 # common
-from ....error.errorHandling import HttpException
 from datetime import datetime
 from ...common.get_day_today import get_day
 

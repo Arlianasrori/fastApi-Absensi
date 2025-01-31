@@ -1,8 +1,10 @@
-from fastapi import APIRouter,Depends, UploadFile
+from fastapi import APIRouter,Depends
 
 # auth-profile
 from ..domain.guru_walas.auth_profile import authProfileService
-from ..domain.schemas.guruWalas_schema import GuruWalasBase, GuruWalasDetailWithSekolah
+from ..domain.schemas.guruWalas_schema import GuruWalasBase, GuruWalasDetailWithSekolah, GuruWalasWithAlamat
+from ..domain.guru_walas.auth_profile.authProfileSchema import UpdateProfileRequest
+from ..domain.schemas.alamat_schema import UpdateAlamatBody
 
 # absen
 from ..domain.guru_walas.absen import absenService
@@ -16,7 +18,7 @@ from ..auth.auth_depends.guru_walas.depend_auth_guru_walas import guruWalasDepen
 from ..auth.auth_depends.guru_walas.get_guru_walas_auth import getWalasAuth
 
 # common
-from ..domain.schemas.response_schema import ApiResponse,MessageOnlyResponse
+from ..domain.schemas.response_schema import ApiResponse
 from ..db.sessionDepedency import sessionDepedency
 
 guruWalasRouter = APIRouter(prefix="/guru-walas",dependencies=[Depends(guruWalasDependAuth)])
@@ -30,13 +32,21 @@ async def getguruWalas(guruWalas : dict = Depends(getWalasAuth),session : sessio
 async def getProfileguruWalas(guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
     return await authProfileService.getGuruWalasProfile(guruWalas["id"],session)
 
+@guruWalasRouter.put("/profile",response_model=ApiResponse[GuruWalasWithAlamat],tags=["GURUWALAS/AUTH-PROFILE"])
+async def updateProfileguruWalas(body : UpdateProfileRequest = UpdateProfileRequest(),alamat : UpdateAlamatBody = UpdateAlamatBody(),guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
+    return await authProfileService.updateProfile(guruWalas["id"],body,alamat,session)
+
+@guruWalasRouter.patch("/profile/foto_profile",response_model=ApiResponse[GuruWalasBase],tags=["GURUWALAS/AUTH-PROFILE"])
+async def updateFotoProfileguruWalas(foto_profile : UploadFile,guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
+    return await authProfileService.add_update_foto_profile(guruWalas["id"],foto_profile,session)
+
 # absen
 @guruWalasRouter.get("/absen/statistik",response_model=ApiResponse[GetStatistikAbsenResponse],tags=["GURUWALAS/ABSEN"])
 async def getStatistikAbsen(guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
     return await absenService.getStatistikAbsen(guruWalas,session)
 
 @guruWalasRouter.get("/absen/histori",response_model=ApiResponse[list[AbsenBase]],tags=["GURUWALAS/ABSEN"])
-async def getAbsenBySiswa(guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
+async def getHistoriAbsen(guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
     return await absenService.getHistoriAbsen(guruWalas,session)
 
 @guruWalasRouter.get("/absen/kelas",response_model=ApiResponse[GetAbsenInKelasResponse],tags=["GURUWALAS/ABSEN"])

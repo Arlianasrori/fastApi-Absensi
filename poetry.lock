@@ -1810,5 +1810,5 @@ astronomy = ["skyfield", "skyfield-data"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = "3.12.1"
-content-hash = "9e3cdb3f0014064e13da76cc7dbe33ecf96144570ec9b65b54d98118e5f7a7c7"
+python-versions = "3.12.3"
+content-hash = "7889bb4337da3f1ad33fca6fe360d3ec9d87cc3534d2ef7e7b58849693d33e74"

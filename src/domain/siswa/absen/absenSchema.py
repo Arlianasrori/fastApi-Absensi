@@ -4,6 +4,9 @@ from enum import Enum
 from fastapi import Form, File, UploadFile
 from ....models.absen_model import StatusAbsenEnum
 from typing import Optional
+from ...schemas.absen_schema import AbsenBase, AbsenWithSiswaDetail
+from ...schemas.jadwal_schema import JadwalWithKoordinatGuruMapel
+from ...schemas.mapel_schema import MapelBase
 
 class StatusRekapAbsenMIngguanEnum(Enum) :
     HADIR = "hadir"
@@ -48,3 +51,11 @@ class AbsenSiswaRequest(BaseModel) :
             latitude=latitude,
             longitude=longitude
         )
+    
+class GetAllLaporanAbsenSiswaResponse(BaseModel) :
+    absen : AbsenBase
+    mapel : MapelBase
+
+class GetDetailAbsenSiswaResponse(AbsenWithSiswaDetail) :
+    jadwal : JadwalWithKoordinatGuruMapel
+    

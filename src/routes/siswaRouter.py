@@ -1,8 +1,10 @@
-from fastapi import APIRouter,Depends, UploadFile
+from fastapi import APIRouter,Depends
 
 # auth-profile
 from ..domain.siswa.auth_profile import authProfileService
-from ..domain.schemas.siswa_schema import SiswaBase, SiswaDetailWithSekolah
+from ..domain.schemas.siswa_schema import SiswaBase, SiswaDetailWithSekolah, SiswaWithAlamat
+from ..domain.schemas.alamat_schema import UpdateAlamatBody
+from ..domain.siswa.auth_profile.authProfileSchema import UpdateProfileRequest
 
 # jadwal
 from ..domain.siswa.jadwal import jadwalService
@@ -18,19 +20,15 @@ from ..domain.siswa.koordinat_absen import koordinatAbsenService
 from ..domain.schemas.koordinatAbsen_schema import KoordinatAbsenKelasBase, KoordinatAbsenDetail
 from ..domain.siswa.koordinat_absen.koordinatAbsenSchema import CekRadiusKoordinatRequest, CekRadiusKoordinatResponse
 
-# laporan siswa
-from ..domain.siswa.laporan import laporanService
-from ..domain.siswa.laporan.laporanSchema import FilterQueryLaporan, AddLaporanSiswaRequest,UpdateLaporanSiswaRequest
-from ..domain.schemas.laporanSiswa_schema import LaporanSiswaBase,LaporanSiswaDetail, LaporanSiswaWithFile
-
 # absen
 from ..domain.siswa.absen import absenService
-from ..domain.siswa.absen.absenSchema import RekapAbsenMingguanResponse, CekAbsenSiswaTodayResponse, AbsenSiswaRequest
+from ..domain.siswa.absen.absenSchema import RekapAbsenMingguanResponse, CekAbsenSiswaTodayResponse, AbsenSiswaRequest, GetDetailAbsenSiswaResponse, GetAllLaporanAbsenSiswaResponse
 from ..domain.schemas.absen_schema import AbsenWithDetail
-# common
-from ..domain.schemas.response_schema import ApiResponse,MessageOnlyResponse
-from ..db.sessionDepedency import sessionDepedency
 
+# common
+from ..domain.schemas.response_schema import ApiResponse
+from ..db.sessionDepedency import sessionDepedency
+from datetime import date
 siswaRouter = APIRouter(prefix="/siswa",dependencies=[Depends(siswaDependAuth)])
 
 # auth-profile
@@ -41,6 +39,15 @@ async def getSiswa(siswa : dict = Depends(getSiswaAuth),session : sessionDepeden
 @siswaRouter.get("/profile",response_model=ApiResponse[SiswaDetailWithSekolah],tags=["SISWA/AUTH-PROFILE"])
 async def getProfileSiswa(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await authProfileService.getProfile(siswa["id"],session)
+
+@siswaRouter.put("/profile",response_model=ApiResponse[SiswaWithAlamat],tags=["SISWA/AUTH-PROFILE"])
+async def updateProfileSiswa(body : UpdateProfileRequest = UpdateProfileRequest(),alamat : UpdateAlamatBody = UpdateAlamatBody(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
+    return await authProfileService.updateProfile(siswa["id"],body,alamat,session)
+
+@siswaRouter.patch("/profile/foto_profile",response_model=ApiResponse[SiswaBase],tags=["SISWA/AUTH-PROFILE"])
+async def add_update_profile(foto_profile : UploadFile,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
+    return await authProfileService.add_update_foto_profile(siswa["id"],foto_profile,session)
+
 
 # koordinat-absen
 @siswaRouter.get("/koordinat-absen",response_model=ApiResponse[list[KoordinatAbsenKelasBase]],tags=["SISWA/KOORDINAT-ABSEN"])
@@ -68,35 +75,6 @@ async def getAllJadwal(query : FilterJadwalQuery = Depends(),siswa : dict = Depe
 async def getAllJadwalToday(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await jadwalService.getAllJadwalToday(siswa,session)
 
-# laporan siswa
-@siswaRouter.post("/laporan",response_model=ApiResponse[LaporanSiswaBase],tags=["SISWA/LAPORAN"])
-async def addLaporan(laporan : AddLaporanSiswaRequest,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
-    return await laporanService.addLaporan(siswa["id"],laporan,session)
-
-@siswaRouter.post("/laporan/file/{id_laporan}",response_model=ApiResponse[LaporanSiswaWithFile],tags=["SISWA/LAPORAN"])
-async def addFileLaporan(id_laporan : int,file : UploadFile,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
-    return await laporanService.addFileLaporan(siswa["id"],id_laporan,file,session)
-
-@siswaRouter.delete("/laporan/file/{id_file_laporan}",response_model=MessageOnlyResponse,tags=["SISWA/LAPORAN"])
-async def deleteFileLaporan(id_file_laporan : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
-    return await laporanService.deleteFileLaporan(siswa["id"],id_file_laporan,session)
-
-@siswaRouter.delete("/laporan/{id_laporan}",response_model=ApiResponse[LaporanSiswaDetail],tags=["SISWA/LAPORAN"])
-async def deleteLaporan(id_laporan : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
-    return await laporanService.deleteLaporan(siswa["id"],id_laporan,session)
-
-@siswaRouter.put("/laporan/{id_laporan}",response_model=ApiResponse[LaporanSiswaBase],tags=["SISWA/LAPORAN"])
-async def updateLaporan(id_laporan : int,laporan : UpdateLaporanSiswaRequest | dict = UpdateLaporanSiswaRequest(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
-    return await laporanService.updateLaporan(siswa["id"],id_laporan,laporan,session)
-
-@siswaRouter.get("/laporan",response_model=ApiResponse[list[LaporanSiswaBase]],tags=["SISWA/LAPORAN"])
-async def getAllLaporan(query : FilterQueryLaporan = Depends(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
-    return await laporanService.getAllLaporan(siswa,query,session)
-
-@siswaRouter.get("/laporan/{id_laporan}",response_model=ApiResponse[LaporanSiswaDetail],tags=["SISWA/LAPORAN"])
-async def getLaporanById(id_laporan : int,session : sessionDepedency = None) :
-    return await laporanService.getLaporanById(id_laporan,session)
-
 # absen
 @siswaRouter.get("/absen/rekap-mingguan",response_model=ApiResponse[RekapAbsenMingguanResponse],tags=["SISWA/ABSEN"])
 async def getRekapAbsenMingguan(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
@@ -106,6 +84,14 @@ async def getRekapAbsenMingguan(siswa : dict = Depends(getSiswaAuth),session : s
 async def cekAbsenToday(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await absenService.cekAbsenSiswaToday(siswa,session)
 
-@siswaRouter.post("/absen",response_model=ApiResponse[CekAbsenSiswaTodayResponse],tags=["SISWA/ABSEN"])
+@siswaRouter.post("/absen",response_model=ApiResponse[AbsenWithDetail],tags=["SISWA/ABSEN"])
 async def absen(body : AbsenSiswaRequest = Depends(AbsenSiswaRequest.as_form),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await absenService.absenSiswa(siswa,body,session)
+
+@siswaRouter.get("/absen/laporan",response_model=ApiResponse[dict[date,list[GetAllLaporanAbsenSiswaResponse]]],tags=["SISWA/ABSEN"])
+async def getAllLaporanAbsen(month : int,year : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
+    return await absenService.getAllLaporanAbsenSiswa(siswa,month,year,session)
+
+@siswaRouter.get("/absen/detail/{id_absen}",response_model=ApiResponse[GetDetailAbsenSiswaResponse],tags=["SISWA/ABSEN"])
+async def getDetailAbsen(id_absen : int,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
+    return await absenService.getDetailAbsenSiswa(siswa,id_absen,session)

@@ -1,98 +1,161 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import func, select, and_, extract
+from sqlalchemy import func, select, and_
 from sqlalchemy.orm import joinedload, subqueryload
 
 # models 
-from ....models.petugas_BK_model import PetugasBK, DistribusiPetugasBK
-from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum, StatusTinjauanEnum
+from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum
 from ....models.siswa_model import Kelas, Siswa
 from ....models.jadwal_model import Jadwal
 # schemas
-from .absenSchema import GetAbsenFilterQuery, GetAbsenBySiswaFilterQuery, GetAbsenInKelasResponse, GetAbsenByJadwalResponse, GetStatistikAbsenResponse
-from ...schemas.absen_schema import AbsenBase, GetAbsenHarianResponse,AbsenWithJadwalMapel
-from ...schemas.jadwal_schema import JadwalWithMapelGuruMapel
+from .absenSchema import GetAbsenFilterQuery, GetAbsenAbsenInKelasResponse, GetHistoriAbsenKelasResponse, GetStatistikKelasAbsenResponse, GetHistoriKelasAjarResponse
+from ...schemas.kelasJurusan_schema import KelasBase
+from ...schemas.absen_schema import GetAbsenHarianResponse
 # common
 from ....error.errorHandling import HttpException
-from datetime import date
-from collections import defaultdict
-from ....utils.generateId_util import generate_id
-from ....utils.updateTable_util import updateTable
-from copy import deepcopy
+import datetime
 from ...common.get_day_today import get_day
 import math
 from babel import Locale
 from babel.dates import format_date
 
+# get statistik kelas diajar saat ini
+async def getStatistikKelasAbsen(guruMapel : dict,session : AsyncSession) -> GetStatistikKelasAbsenResponse :
+    dayNow : str = (await get_day())["day_name"]
+    timeNow : datetime.time = datetime.datetime.now().time()
 
-async def getStatistikAbsen(walas : dict,session : AsyncSession) -> GetStatistikAbsenResponse :
-    findCountSiswaInKelas = (await session.execute(select(func.count(Siswa.id).label("count_data")).where(Siswa.id_kelas == walas["id_kelas"]))).one()._asdict()
-    findAllAbsen = (await session.execute(select(func.count(Absen.id).filter(Absen.status != StatusAbsenEnum.tidak_hadir.value).label("count_data_without_tidak_hadir"),func.count(Absen.id).filter(Absen.status == StatusAbsenEnum.hadir.value).label("count_data_hadir")).where(Absen.siswa.and_(Siswa.id_kelas == walas["id_kelas"],Absen.tanggal == date.today())))).one()._asdict()
+    findJadwalNow = (await session.execute(select(Jadwal).options(joinedload(Jadwal.kelas)).where(and_(Jadwal.id_guru_mapel == guruMapel["id"],Jadwal.hari == dayNow,and_(Jadwal.jam_mulai <= timeNow,Jadwal.jam_selesai >= timeNow))))).scalars().all()
+
+    if len(findJadwalNow) == 0 :
+        raise HttpException(404,f"Tidak jadwal hari ini")
+
+    findKelas = (await session.execute(select(Kelas).options(subqueryload(Kelas.siswa),joinedload(Kelas.guru_walas)).where(Kelas.id == findJadwalNow[0].id_kelas))).scalar_one_or_none()
 
     return {
         "msg" : "success",
         "data" : {
-            "jumlah_siswa" : findCountSiswaInKelas["count_data"],
-            "jumlah_absen_hadir" : findAllAbsen["count_data_hadir"],
-            "jumlah_absen_tanpa_keterangan" : findCountSiswaInKelas["count_data"] - findAllAbsen["count_data_without_tidak_hadir"]
+            "jumlah_siswa" : len(findKelas.siswa),
+            "kelas" : findKelas
         }
     }
 
-async def getHistoriAbsen(walas : dict,session : AsyncSession) -> list[AbsenBase]:
-    findAbsen = (await session.execute(select(Absen).where(Absen.siswa.and_(Siswa.id_kelas == walas["id_kelas"])).limit(3))).scalars().all()
+async def getHistoriKelasAjar(guruMapel : dict,session : AsyncSession) -> list[GetHistoriKelasAjarResponse] :
+    countDataKelas = 0
+    responseData = []
+
+    locale_id = Locale('id', 'ID')
+    dateNow = datetime.datetime.now().date()
     
+
+    for i in range (0,7) :
+        if countDataKelas > 3 :
+            break
+        dateQuery = dateNow - datetime.timedelta(days=i)
+        dayName = format_date(dateQuery, format="EEEE", locale=locale_id).lower()
+        findJadwal = (await session.execute(select(Jadwal).options(joinedload(Jadwal.kelas)).where(Jadwal.id_guru_mapel == guruMapel["id"],Jadwal.hari == dayName).order_by(Jadwal.hari.asc(),Jadwal.jam_mulai.asc()))).scalars().all()
+
+        if len(findJadwal) > 0 :
+            for jadwalItem in findJadwal :
+                countSiswaHadir = (await session.execute(select(func.count(Absen.id)).where(Absen.id_jadwal == jadwalItem.id,Absen.status == StatusAbsenEnum.hadir,Absen.tanggal == dateQuery))).scalar_one()
+                responseData.append({
+                    "kelas" : jadwalItem.kelas,
+                    "tanggal" : dateQuery,
+                    "jumlah_hadir" : countSiswaHadir
+                })
+                countDataKelas += 1
+
     return {
         "msg" : "success",
-        "data" : findAbsen
+        "data" : responseData
     }
-    
-async def getAllAbsenInKelas(walas : dict,query : GetAbsenFilterQuery,session : AsyncSession) -> GetAbsenInKelasResponse :    
-    findSiswa = (await session.execute(select(Siswa).where(Siswa.id_kelas == walas["id_kelas"]).order_by(Siswa.nama.asc()).limit(query.limit).offset((query.offset - 1) * query.limit))).scalars().all()
 
-    idSiswaList = [siswa.id for siswa in findSiswa]
+async def getAllAbsenByHistori(guruMapel : dict,query : GetAbsenFilterQuery,session : AsyncSession) -> GetHistoriAbsenKelasResponse :
+    locale_id = Locale('id', 'ID')
+    dayName = format_date(query.tanggal, format="EEEE", locale=locale_id).lower()
 
-    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa)).where(and_(Absen.siswa.and_(Siswa.id_kelas == walas["id_kelas"]),Absen.tanggal == query.tanggal,Absen.id_siswa.in_(idSiswaList))))).scalars().all()
-    
-    dayNow : dict = await get_day()
-    findJadwal = (await session.execute(select(Jadwal).where(and_(Jadwal.id_kelas == walas["id_kelas"],Jadwal.hari == dayNow["day_name"].value)).order_by(Jadwal.jam_mulai.asc()))).scalars().all()
+    findJadwal = (await session.execute(select(Jadwal).where(and_(Jadwal.id_guru_mapel == guruMapel["id"],Jadwal.id_kelas == query.id_kelas,Jadwal.hari == dayName)))).scalars().all()
 
-    print(findJadwal,dayNow["day_name"].value)
+    if len(findJadwal) == 0 :
+        raise HttpException(404,f"Tidak ada jadwal pada tanggal yang diberikan")
     
-    grouped_absen = {}
+    waktu_belajar = 0
+
+    jam_mulai = findJadwal[0].jam_mulai.hour * 60 + findJadwal[0].jam_mulai.minute
+    jam_selesai = findJadwal[0].jam_selesai.hour * 60 + findJadwal[0].jam_selesai.minute
+    waktu_belajar += jam_selesai - jam_mulai
+
+    
+    findSiswa = (await session.execute(select(Siswa).where(Siswa.id_kelas == query.id_kelas).order_by(Siswa.nama.asc()).limit(query.limit).offset((query.offset - 1) * query.limit))).scalars().all()
+    
+    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa)).where(and_(Absen.siswa.and_(Siswa.id_kelas == query.id_kelas),Absen.tanggal == query.tanggal,Absen.siswa.and_(Siswa.id_kelas == query.id_kelas),Absen.id_jadwal == findJadwal[0].id)))).scalars().all()
+
+    grouped_absen = []
     for siswaItem in findSiswa :
         absenSiswa = list(filter(lambda x: x.id_siswa == siswaItem.id, findAbsen))
-        dictResponse = {}
-        
-        for index,jadwalItem in enumerate(findJadwal) :
-            absenFilter = list(filter(lambda x: x.id_jadwal == jadwalItem.id, absenSiswa))
-            if len(absenFilter) > 0 :
-                dictResponse.update({index + 1 : absenFilter[0]})
-            else :
-                dictResponse.update({index + 1 : None})
-        
-        grouped_absen[siswaItem.nama] = dictResponse
+        dictResponse = {"siswa" : siswaItem,"absen" : absenSiswa[0] if len(absenSiswa) > 0 else None}
+        grouped_absen.append(dictResponse)
+
+    countDataSiswa = (await session.execute(select(func.count(Siswa.id)).where(Siswa.id_kelas == query.id_kelas))).scalar_one()
+    countPage = math.ceil(countDataSiswa / query.limit)
+
+    return {
+        "msg" : "success",
+        "data" : {
+            "waktu_belajar" : waktu_belajar,
+            "absen" : grouped_absen,
+            "jumlah_hadir" : len(list(filter(lambda x: x.status == StatusAbsenEnum.hadir, findAbsen))),
+            "count_data" : len(findSiswa),
+            "count_page" : countPage
+        }
+    }
+
+async def getKelasAjar(guruMapel : dict,session : AsyncSession) -> list[KelasBase]:
+    findIdKelas = (await session.execute(select(Kelas.id).join(Jadwal).where(Jadwal.id_guru_mapel == guruMapel["id"]))).scalars().all()
+
+    findKelas = (await session.execute(select(Kelas).where(Kelas.id.in_(findIdKelas)))).scalars().all()
+
+    return {
+        "msg" : "success",
+        "data" : findKelas
+    }
+
+async def getAllAbsenInKelas(guruMapel : dict,query : GetAbsenFilterQuery,session : AsyncSession) -> GetAbsenAbsenInKelasResponse :
+    locale_id = Locale('id', 'ID')
+    dayName = format_date(query.tanggal, format="EEEE", locale=locale_id).lower()
+
+    findJadwal = (await session.execute(select(Jadwal).where(and_(Jadwal.id_guru_mapel == guruMapel["id"],Jadwal.id_kelas == query.id_kelas,Jadwal.hari == dayName)))).scalars().all()
+
+    if len(findJadwal) == 0 :
+        raise HttpException(404,f"Tidak ada jadwal pada tanggal yang diberikan")
+
+    findKelas = (await session.execute(select(Kelas).options(subqueryload(Kelas.siswa)).where(Kelas.id == query.id_kelas))).scalar_one_or_none()
+
+    if findKelas is None :
+        raise HttpException(404,f"Kelas tidak ditemukan")
+
+    findSiswa = (await session.execute(select(Siswa).where(Siswa.id_kelas == query.id_kelas).order_by(Siswa.nama.asc()).limit(query.limit).offset((query.offset - 1) * query.limit))).scalars().all()
     
-    countDataSiswa = (await session.execute(select(func.count(Siswa.id)).where(Siswa.id_kelas == walas["id_kelas"]))).scalar_one()
+    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa)).where(and_(Absen.siswa.and_(Siswa.id_kelas == query.id_kelas),Absen.tanggal == query.tanggal,Absen.siswa.and_(Siswa.id_kelas == query.id_kelas),Absen.id_jadwal == findJadwal[0].id)))).scalars().all()
+
+    grouped_absen = []
+    for siswaItem in findSiswa :
+        absenSiswa = list(filter(lambda x: x.id_siswa == siswaItem.id, findAbsen))
+        dictResponse = {"siswa" : siswaItem,"absen" : absenSiswa[0] if len(absenSiswa) > 0 else None}
+        grouped_absen.append(dictResponse)
+
+    countDataSiswa = (await session.execute(select(func.count(Siswa.id)).where(Siswa.id_kelas == query.id_kelas))).scalar_one()
     countPage = math.ceil(countDataSiswa / query.limit)
 
     return {
         "msg" : "success",
         "data" : {
             "absen" : grouped_absen,
+            "jumlah_siswa" : len(findKelas.siswa),
             "count_data" : len(findSiswa),
             "count_page" : countPage
         }
     }
 
-async def getAllAbsenBySiswa(query : GetAbsenBySiswaFilterQuery,session : AsyncSession) -> list[AbsenWithJadwalMapel] :
-    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.jadwal).joinedload(Jadwal.mapel)).where(and_(Absen.id_siswa == query.id_siswa,Absen.tanggal == query.tanggal)))).scalars().all()
 
-    return {
-        "msg" : "success",
-        "data" : findAbsen
-    }
-
-
-# get detail absen harian
 async def getDetailAbsenHarian(id_absen : int,session : AsyncSession) -> GetAbsenHarianResponse :
     findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.detail).joinedload(AbsenDetail.petugas_bk),joinedload(Absen.siswa),joinedload(Absen.jadwal).joinedload(Jadwal.koordinat)).where(Absen.id == id_absen))).scalar_one_or_none()
 
@@ -102,53 +165,4 @@ async def getDetailAbsenHarian(id_absen : int,session : AsyncSession) -> GetAbse
     return {
         "msg" : "success",
         "data" : findAbsen
-    }
-
-async def getAllTanggalContainsAbsen(walas : dict,month : int,session : AsyncSession) -> list[date] :
-    findAbsenTanggal = (await session.execute(select(Absen.tanggal).where(Absen.siswa.and_(Siswa.id_kelas == walas["id_kelas"])).where(extract("month",Absen.tanggal) == month))).scalars().all()
-
-    return {
-        "msg" : "success",
-        "data" : set([tanggal for tanggal in findAbsenTanggal])
-    }
-
-async def getJadwalByTanggal(walas : dict,tanggal : date,session : AsyncSession) -> list[JadwalWithMapelGuruMapel] :
-    locale_id = Locale('id', 'ID')
-    dayName = format_date(tanggal, format="EEEE", locale=locale_id).lower()
-    findJadwal = (await session.execute(select(Jadwal).options(joinedload(Jadwal.mapel),joinedload(Jadwal.guru_mapel)).where(and_(Jadwal.hari == dayName,Jadwal.id_kelas == walas["id_kelas"])))).scalars().all()
-
-    return {
-        "msg" : "success",
-        "data" : findJadwal
-    }
-
-async def getAbsenByJadwal(walas : dict,id_jadwal : int,query : GetAbsenFilterQuery,session : AsyncSession) -> GetAbsenByJadwalResponse :
-    findJadwal = (await session.execute(select(Jadwal).where(Jadwal.id == id_jadwal))).scalar_one_or_none()
-
-    if findJadwal is None :
-        raise HttpException(404,"Jadwal tidak ditemukan")
-    
-    # Konversi waktu ke datetime dan hitung selisih dalam menit
-    jam_mulai = findJadwal.jam_mulai.hour * 60 + findJadwal.jam_mulai.minute
-    jam_selesai = findJadwal.jam_selesai.hour * 60 + findJadwal.jam_selesai.minute
-    waktuBelajar = jam_selesai - jam_mulai  # hasil dalam menit
-    # waktuBelajar = findJadwal.jam_selesai - findJadwal.jam_mulai
-
-    findAbsen = (await session.execute(select(Absen).where(and_(Absen.id_jadwal == id_jadwal,Absen.tanggal == query.tanggal, Absen.siswa.and_(Siswa.id_kelas == walas["id_kelas"]))).order_by(Siswa.nama.asc()).limit(query.limit).offset((query.offset - 1) * query.limit))).scalars().all()
-
-    countDataSiswa = (await session.execute(select(func.count(Absen.id).label("count_data"),func.count(Absen.id).filter(Absen.status == StatusAbsenEnum.hadir.value).label("siswa_hadir")).where(and_(Absen.siswa.and_(Siswa.id_kelas == walas["id_kelas"]),Absen.tanggal == query.tanggal)))).one()._asdict()
-
-
-    
-    countPage = math.ceil(countDataSiswa["count_data"] / query.limit)
-
-    return {
-        "msg" : "success",
-        "data" : {
-            "absen" : findAbsen,
-            "siswa_hadir" : countDataSiswa["siswa_hadir"],
-            "waktu_belajar" : waktuBelajar,
-            "count_data" : len(findAbsen),
-            "count_page" : countPage
-        }
     }
