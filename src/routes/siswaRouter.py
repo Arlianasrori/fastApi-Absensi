@@ -48,9 +48,9 @@ async def getProfileSiswa(siswa : dict = Depends(getSiswaAuth),session : session
 async def updateProfileSiswa(body : UpdateProfileRequest = UpdateProfileRequest(),alamat : UpdateAlamatBody = UpdateAlamatBody(),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
     return await authProfileService.updateProfile(siswa["id"],body,alamat,session)
 
-@siswaRouter.patch("/profile/foto_profile/{id_siswa}",response_model=ApiResponse[SiswaBase],tags=["ADMIN/SISWA"])
-async def add_update_profile(id_siswa : int,foto_profile : UploadFile,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
-    return await authProfileService.add_update_foto_profile(id_siswa,siswa["id_sekolah"],foto_profile,session)
+@siswaRouter.patch("/profile/foto_profile",response_model=ApiResponse[SiswaBase],tags=["SISWA/AUTH-PROFILE"])
+async def add_update_profile(foto_profile : UploadFile,siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
+    return await authProfileService.add_update_foto_profile(siswa["id"],foto_profile,session)
 
 
 # koordinat-absen

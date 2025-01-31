@@ -49,33 +49,19 @@ async def updateProfile(id_siswa : int,body : UpdateProfileRequest,alamat : Upda
     if alamat.model_dump(exclude_unset=True):
         updateTable(alamat,findSiswa.alamat)
 
+    siswaDictCopy = deepcopy(findSiswa.__dict__)
     await session.commit()
 
     return {
         "msg" : "success",
-        "data" : findSiswa
+        "data" : siswaDictCopy
     }
 
 PROFILE_STORE = os.getenv("DEV_FOTO_PROFILE_SISWA_STORE")
 PROFILE_BASE_URL = os.getenv("DEV_FOTO_PROFILE_SISWA_BASE_URL")
 
-async def add_update_foto_profile(id : int,id_sekolah : int,foto_profile : UploadFile,session : AsyncSession) -> SiswaBase :
-    """
-    Add or update the profile photo of a student.
-
-    Args:
-        id (int): The student ID.
-        id_sekolah (int): The school ID.
-        foto_profile (UploadFile): The profile photo file to be uploaded.
-        session (AsyncSession): The database session.
-
-    Returns:
-        SiswaBase: The updated student information.
-
-    Raises:
-        HttpException: If the student is not found or if the file is not an image.
-    """
-    findSiswa = (await session.execute(select(Siswa).where(and_(Siswa.id == id,Siswa.id_sekolah == id_sekolah)))).scalar_one_or_none()
+async def add_update_foto_profile(id : int,foto_profile : UploadFile,session : AsyncSession) -> SiswaBase :
+    findSiswa = (await session.execute(select(Siswa).where(Siswa.id == id))).scalar_one_or_none()
     if not findSiswa :
         raise HttpException(404,f"siswa tidak ditemukan")
 
