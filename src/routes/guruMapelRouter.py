@@ -2,7 +2,9 @@ from fastapi import APIRouter,Depends
 
 # auth-profile
 from ..domain.guru_mapel.auth_profile import authProfileService
-from ..domain.schemas.guruMapel_schema import GuruMapelBase, GuruMapelDetailWithSekolah
+from ..domain.schemas.guruMapel_schema import GuruMapelBase, GuruMapelDetailWithSekolah, GuruMapelWithAlamat
+from ..domain.guru_mapel.auth_profile.authprofileSchema import UpdateProfileRequest
+from ..domain.schemas.alamat_schema import UpdateAlamatBody
 
 # absen
 from ..domain.guru_mapel.absen import absenService
@@ -28,6 +30,14 @@ async def getguruMapel(guruMapel : dict = Depends(getMapelAuth),session : sessio
 @guruMapelRouter.get("/profile",response_model=ApiResponse[GuruMapelDetailWithSekolah],tags=["GURUMAPEL/AUTH-PROFILE"])
 async def getProfileguruMapel(guruMapel : dict = Depends(getMapelAuth),session : sessionDepedency = None) :
     return await authProfileService.getGuruMapelProfile(guruMapel["id"],session)
+
+@guruMapelRouter.put("/profile",response_model=ApiResponse[GuruMapelWithAlamat],tags=["GURUMAPEL/AUTH-PROFILE"])
+async def updateProfileGuruMapel(body : UpdateProfileRequest = UpdateProfileRequest(),alamat : UpdateAlamatBody = UpdateAlamatBody(),guruMapel : dict = Depends(getMapelAuth),session : sessionDepedency = None) :
+    return await authProfileService.updateProfile(guruMapel["id"],body,alamat,session)
+
+@guruMapelRouter.patch("/profile/foto_profile",response_model=ApiResponse[GuruMapelBase],tags=["GURUMAPEL/AUTH_PROFILE"])
+async def add_update_profile(foto_profile : UploadFile,guruMapel : dict = Depends(getMapelAuth),session : sessionDepedency = None) :
+    return await authProfileService.add_update_foto_profile(guruMapel["id"],foto_profile,session)
 
 # # absen
 @guruMapelRouter.get("/absen/histori-kelas-ajar",response_model=ApiResponse[list[GetHistoriKelasAjarResponse]],tags=["GURUMAPEL/AUTH-PROFILE"])
