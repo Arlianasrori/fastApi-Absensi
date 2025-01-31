@@ -31,7 +31,6 @@ class Siswa(Base):
     absen = relationship("Absen", back_populates="siswa")
     sekolah = relationship("Sekolah", back_populates="siswa")
     tahun = relationship("TahunSekolah", back_populates="siswa")
-    laporan = relationship("LaporanSiswa", back_populates="siswa")
 
     __table_args__ = (UniqueConstraint('nis', 'id_sekolah', 'id_tahun', name='_nis_sekolah_tahun_siswa_uc'),)
     

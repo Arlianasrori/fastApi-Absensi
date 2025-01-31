@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Depends
+from fastapi import APIRouter,Depends,UploadFile
 
 # auth-profile
 from ..domain.guru_walas.auth_profile import authProfileService

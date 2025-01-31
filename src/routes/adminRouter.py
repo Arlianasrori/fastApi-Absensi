@@ -55,7 +55,7 @@ from ..domain.schemas.absen_schema import AbsenWithSiswaDetail
 
 # koodinat absen
 from ..domain.admin.koordinat_absen_kelas import koordinatAbsenKelasService
-from ..domain.admin.koordinat_absen_kelas.koordinatAbsenKelasSchema import FilterKoordinatAbsenKelasQuery,ResponseKoordinatAbsenKelasPag
+from ..domain.admin.koordinat_absen_kelas.koordinatAbsenKelasSchema import FilterKoordinatAbsenKelasQuery,ResponseKoordinatAbsenKelasPag,AddKoordinatAbsenKelasRequest,UpdateKoordinatAbsenKelasRequest
 from ..domain.schemas.koordinatAbsen_schema import KoordinatAbsenKelasBase
 
 # auth depends
@@ -314,3 +314,11 @@ async def getAllKoordinatAbsen(id_tahun : int,page : int | None = None,admin : d
 @adminRouter.get("/koordinatAbsenKelas/{id}",response_model=ApiResponse[KoordinatAbsenKelasBase],tags=["ADMIN/KOORDINAt ABSEN KELAS"])
 async def getKoordinatById(id : int,admin : dict = Depends(getAdminAuth),session : sessionDepedency = None) :
     return await koordinatAbsenKelasService.getKoordinatById(id,admin["id_sekolah"],session)
+
+@adminRouter.post("/koordinatAbsenKelas",response_model=ApiResponse[KoordinatAbsenKelasBase],tags=["ADMIN/KOORDINAt ABSEN KELAS"])
+async def addKoordinatAbsenKelas(koordinat : AddKoordinatAbsenKelasRequest,admin : dict = Depends(getAdminAuth),session : sessionDepedency = None) :
+    return await koordinatAbsenKelasService.addKoordinatAbsenKelas(admin["id_sekolah"],koordinat,session)
+
+@adminRouter.put("/koordinatAbsenKelas/{id_koordinat}",response_model=ApiResponse[KoordinatAbsenKelasBase],tags=["ADMIN/KOORDINAt ABSEN KELAS"])
+async def updateKoordinatAbsenKelas(id_koordinat : int,koordinat : UpdateKoordinatAbsenKelasRequest = UpdateKoordinatAbsenKelasRequest(),admin : dict = Depends(getAdminAuth),session : sessionDepedency = None) :
+    return await koordinatAbsenKelasService.updateKoordinatAbsenKelas(id_koordinat,admin["id_sekolah"],koordinat,session)

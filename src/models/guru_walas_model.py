@@ -30,8 +30,6 @@ class GuruWalas(Base):
     sekolah = relationship("Sekolah", back_populates="guru_walas")
     tahun = relationship("TahunSekolah", back_populates="guru_walas")
     kelas = relationship("Kelas", back_populates="guru_walas")
-    laporan = relationship("LaporanGuruWalas", back_populates="guru_walas")
-    laporan_BK = relationship("LaporanPetugasBK", back_populates="guru_walas")
 
     __table_args__ = (UniqueConstraint('nip', 'id_sekolah', 'id_tahun', name='_nip_sekolah_tahun_guru_walas_uc'),)
     

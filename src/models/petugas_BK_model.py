@@ -29,7 +29,6 @@ class PetugasBK(Base):
     sekolah = relationship("Sekolah", back_populates="petugas_BK")
     tahun = relationship("TahunSekolah", back_populates="petugas_BK")
     distribusi_petugas_BK = relationship("DistribusiPetugasBK", back_populates="petugas_BK",cascade="all")
-    laporan = relationship("LaporanPetugasBK", back_populates="petugas_BK")
     absen_detail = relationship("AbsenDetail", back_populates="petugas_bk")
 
     __table_args__ = (UniqueConstraint('nip', 'id_sekolah', 'id_tahun', name='_nip_sekolah_tahun_petugas_BK_uc'),)

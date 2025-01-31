@@ -1,8 +1,10 @@
-from fastapi import APIRouter,Depends
+from fastapi import APIRouter,Depends,UploadFile
 
 # auth-profile
 from ..domain.petugasBK.auth_profile import authProfileService
-from ..domain.schemas.petugasBK_schema import PetugasBkBase,PetugasBKDetailWithSekolah
+from ..domain.schemas.petugasBK_schema import PetugasBkBase,PetugasBKDetailWithSekolah,PetugasBKWithAlamat
+from ..domain.petugasBK.auth_profile.authProfileSchema import UpdateProfileRequest
+from ..domain.schemas.alamat_schema import UpdateAlamatBody
 
 # absen
 from ..domain.petugasBK.absen import absenService
@@ -27,6 +29,14 @@ async def getPetugasBK(petugasBK : dict = Depends(getPetugasBKAuth),session : se
 @petugasBKRouter.get("/profile",response_model=ApiResponse[PetugasBKDetailWithSekolah],tags=["PETUGASBK/AUTH-PROFILE"])
 async def getProfilePetugasBK(petugasBK : dict = Depends(getPetugasBKAuth),session : sessionDepedency = None) :
     return await authProfileService.getProfile(petugasBK["id"],session)
+
+@petugasBKRouter.put("/profile",response_model=ApiResponse[PetugasBKWithAlamat],tags=["PETUGASBK/AUTH-PROFILE"])
+async def updateProfilePetugasBK(body : UpdateProfileRequest = UpdateProfileRequest(),alamat : UpdateAlamatBody = UpdateAlamatBody(),petugasBK : dict = Depends(getPetugasBKAuth),session : sessionDepedency = None) :
+    return await authProfileService.updateProfile(petugasBK["id"],body,alamat,session)
+
+@petugasBKRouter.patch("/profile/foto-profile",response_model=ApiResponse[PetugasBkBase],tags=["PETUGASBK/AUTH-PROFILE"])
+async def updateFotoProfilePetugasBK(foto_profile : UploadFile,petugasBK : dict = Depends(getPetugasBKAuth),session : sessionDepedency = None) :
+    return await authProfileService.add_update_foto_profile(petugasBK["id"],foto_profile,session)
 
 # absen
 @petugasBKRouter.get("/absen/statistik-tinjauan",response_model=ApiResponse[StatistikAbsenResponse],tags=["PETUGASBK/ABSEN"])

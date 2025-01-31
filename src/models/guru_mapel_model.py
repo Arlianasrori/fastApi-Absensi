@@ -31,8 +31,6 @@ class GuruMapel(Base):
     tahun = relationship("TahunSekolah", back_populates="guru_mapel")
     mapel = relationship("Mapel", back_populates="guru_mapel")
     jadwal = relationship("Jadwal", back_populates="guru_mapel")
-    laporan = relationship("LaporanGuruMapel", back_populates="guru_mapel")
-    laporan_BK = relationship("LaporanPetugasBK", back_populates="guru_mapel")
 
     __table_args__ = (UniqueConstraint('nip', 'id_sekolah', 'id_tahun', name='_nip_sekolah_tahun_guru_mapel_uc'),)
     

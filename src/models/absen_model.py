@@ -21,7 +21,7 @@ class KoordinatAbsenKelas(Base) :
     __tablename__ = 'koordinat_absen_kelas'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    id_kelas = Column(Integer, ForeignKey('kelas.id'))
+    id_kelas = Column(Integer, ForeignKey('kelas.id',ondelete='CASCADE',onupdate='CASCADE'))
     nama_tempat = Column(String(255),nullable=False)
     latitude = Column(Float)
     longitude = Column(Float)
