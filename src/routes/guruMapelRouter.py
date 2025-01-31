@@ -2,7 +2,9 @@ from fastapi import APIRouter,Depends, UploadFile
 
 # auth-profile
 from ..domain.guru_mapel.auth_profile import authProfileService
-from ..domain.schemas.guruMapel_schema import GuruMapelBase, GuruMapelDetailWithSekolah
+from ..domain.schemas.guruMapel_schema import GuruMapelBase, GuruMapelDetailWithSekolah, GuruMapelWithAlamat
+from ..domain.guru_mapel.auth_profile.authprofileSchema import UpdateProfileRequest
+from ..domain.schemas.alamat_schema import UpdateAlamatBody
 # depends
 from ..auth.auth_depends.guru_mapel.depend_auth_guru_mapel import guruMapelDependAuth
 from ..auth.auth_depends.guru_mapel.get_guru_mapel_auth import getMapelAuth
@@ -22,35 +24,10 @@ async def getguruMapel(guruMapel : dict = Depends(getMapelAuth),session : sessio
 async def getProfileguruMapel(guruMapel : dict = Depends(getMapelAuth),session : sessionDepedency = None) :
     return await authProfileService.getGuruMapelProfile(guruMapel["id"],session)
 
-# # absen
-# @guruWalasRouter.get("/absen/statistik",response_model=ApiResponse[GetStatistikAbsenResponse],tags=["GURUWALAS/ABSEN"])
-# async def getStatistikAbsen(guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
-#     return await absenService.getStatistikAbsen(guruWalas,session)
+@guruMapelRouter.put("/profile",response_model=ApiResponse[GuruMapelWithAlamat],tags=["GURUMAPEL/AUTH-PROFILE"])
+async def updateProfileGuruMapel(body : UpdateProfileRequest = UpdateProfileRequest(),alamat : UpdateAlamatBody = UpdateAlamatBody(),guruMapel : dict = Depends(getMapelAuth),session : sessionDepedency = None) :
+    return await authProfileService.updateProfile(guruMapel["id"],body,alamat,session)
 
-# @guruWalasRouter.get("/absen/histori",response_model=ApiResponse[list[AbsenBase]],tags=["GURUWALAS/ABSEN"])
-# async def getAbsenBySiswa(guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
-#     return await absenService.getHistoriAbsen(guruWalas,session)
-
-# @guruWalasRouter.get("/absen/kelas",response_model=ApiResponse[GetAbsenInKelasResponse],tags=["GURUWALAS/ABSEN"])
-# async def getAbsenByKelas(query : GetAbsenFilterQuery = Depends(),guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
-#     return await absenService.getAllAbsenInKelas(guruWalas,query,session)
-
-# @guruWalasRouter.get("/absen/siswa",response_model=ApiResponse[list[AbsenWithJadwalMapel]],tags=["GURUWALAS/ABSEN"])
-# async def getAbsenBySiswa(query : GetAbsenBySiswaFilterQuery = Depends(),session : sessionDepedency = None) :
-#     return await absenService.getAllAbsenBySiswa(query,session)
-
-# @guruWalasRouter.get("/absen/detail/{id_absen}",response_model=ApiResponse[GetAbsenHarianResponse],tags=["GURUWALAS/ABSEN"])
-# async def getDetailAbsen(id_absen : int,session : sessionDepedency = None) :
-#     return await absenService.getDetailAbsenHarian(id_absen,session)
-
-# @guruWalasRouter.get("/absen/tanggalContainsAbsen",response_model=ApiResponse[list[date]],tags=["GURUWALAS/ABSEN"])
-# async def getTanggalContainsAbsen(month : int,guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
-#     return await absenService.getAllTanggalContainsAbsen(guruWalas,month,session)
-
-# @guruWalasRouter.get("/jadwal",response_model=ApiResponse[list[JadwalWithMapelGuruMapel]],tags=["GURUWALAS/ABSEN"])
-# async def getJadwalByTanggal(tanggal : date,guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
-#     return await absenService.getJadwalByTanggal(guruWalas,tanggal,session)
-
-# @guruWalasRouter.get("/absen/jadwal/{id_jadwal}",response_model=ApiResponse[GetAbsenByJadwalResponse],tags=["GURUWALAS/ABSEN"])
-# async def getAbsenInKelasByJadwal(id_jadwal : int,query : GetAbsenFilterQuery = Depends(),guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
-#     return await absenService.getAbsenByJadwal(guruWalas,id_jadwal,query,session)
+@guruMapelRouter.patch("/profile/foto_profile/{id_guru_mapel}",response_model=ApiResponse[GuruMapelBase],tags=["GURUMAPEL/AUTH_PROFILE"])
+async def add_update_profile(id_guru_mapel : int,foto_profile : UploadFile,guruMapel : dict = Depends(getMapelAuth),session : sessionDepedency = None) :
+    return await authProfileService.add_update_foto_profile(id_guru_mapel,guruMapel["id_sekolah"],foto_profile,session)
