@@ -50,11 +50,12 @@ async def updateProfile(id_walas : int,body : UpdateProfileRequest,alamat : Upda
     if alamat.model_dump(exclude_unset=True):
         updateTable(alamat,findWalas.alamat)
 
+    guruWalasDictCopy = deepcopy(findWalas.__dict__)
     await session.commit()
 
     return {
         "msg" : "success",
-        "data" : findWalas
+        "data" : guruWalasDictCopy
     }
 
 PROFILE_STORE = os.getenv("DEV_FOTO_PROFILE_GURU_WALAS_STORE")

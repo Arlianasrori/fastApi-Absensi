@@ -25,10 +25,10 @@ async def getguruWalas(guruWalas : dict = Depends(getWalasAuth),session : sessio
 async def getProfileguruWalas(guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
     return await authProfileService.getGuruWalasProfile(guruWalas["id"],session)
 
-@guruWalasRouter.put("/profile",response_model=ApiResponse[GuruWalasDetailWithSekolah],tags=["GURUWALAS/AUTH-PROFILE"])
+@guruWalasRouter.put("/profile",response_model=ApiResponse[GuruWalasWithAlamat],tags=["GURUWALAS/AUTH-PROFILE"])
 async def updateProfileguruWalas(body : UpdateProfileRequest = UpdateProfileRequest(),alamat : UpdateAlamatBody = UpdateAlamatBody(),guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
     return await authProfileService.updateProfile(guruWalas["id"],body,alamat,session)
 
-@guruWalasRouter.put("/profile/foto_profile",response_model=ApiResponse[GuruWalasBase],tags=["GURUWALAS/AUTH-PROFILE"])
+@guruWalasRouter.patch("/profile/foto_profile",response_model=ApiResponse[GuruWalasBase],tags=["GURUWALAS/AUTH-PROFILE"])
 async def updateFotoProfileguruWalas(foto_profile : UploadFile,guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
     return await authProfileService.add_update_foto_profile(guruWalas["id"],foto_profile,session)
