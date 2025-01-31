@@ -12,12 +12,16 @@ from ..domain.guru_walas.absen.absenSchema import GetAbsenBySiswaFilterQuery, Ge
 from ..domain.schemas.absen_schema import AbsenWithJadwalMapel, AbsenBase, GetAbsenHarianResponse
 from ..domain.schemas.jadwal_schema import JadwalWithMapelGuruMapel
 
-from datetime import date
+# notification
+from ..domain.guru_walas.notification import notificationService
+from ..domain.schemas.notification_schema import NotificationModelBase, ResponseGetUnreadNotification
+
 # depends
 from ..auth.auth_depends.guru_walas.depend_auth_guru_walas import guruWalasDependAuth
 from ..auth.auth_depends.guru_walas.get_guru_walas_auth import getWalasAuth
 
 # common
+from datetime import date
 from ..domain.schemas.response_schema import ApiResponse
 from ..db.sessionDepedency import sessionDepedency
 
@@ -72,3 +76,20 @@ async def getJadwalByTanggal(tanggal : date,guruWalas : dict = Depends(getWalasA
 @guruWalasRouter.get("/absen/jadwal/{id_jadwal}",response_model=ApiResponse[GetAbsenByJadwalResponse],tags=["GURUWALAS/ABSEN"])
 async def getAbsenInKelasByJadwal(id_jadwal : int,query : GetAbsenFilterQuery = Depends(),guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
     return await absenService.getAbsenByJadwal(guruWalas,id_jadwal,query,session)
+
+# notification
+@guruWalasRouter.get("/notification",response_model=ApiResponse[dict[date,list[NotificationModelBase]]],tags=["GURUWALAS/NOTIFICATION"])
+async def getAllNotification(guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
+    return await notificationService.getAllNotification(guruWalas["id"],session)
+
+@guruWalasRouter.get("/notification/{id_notification}",response_model=ApiResponse[NotificationModelBase],tags=["GURUWALAS/NOTIFICATION"])
+async def getNotificationById(id_notification : int,guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
+    return await notificationService.getNotificationById(id_notification,guruWalas["id"],session)
+
+@guruWalasRouter.post("/notification/read/{id_notification}",response_model=ApiResponse[NotificationModelBase],tags=["GURUWALAS/NOTIFICATION"])
+async def readNotification(id_notification : int,guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
+    return await notificationService.readNotification(id_notification,guruWalas["id"],session)
+
+@guruWalasRouter.get("/notification/unread/count",response_model=ApiResponse[ResponseGetUnreadNotification],tags=["GURUWALAS/NOTIFICATION"])
+async def getUnreadNotification(guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
+    return await notificationService.getCountNotification(guruWalas["id"],session)

@@ -11,6 +11,10 @@ from ..domain.petugasBK.absen import absenService
 from ..domain.petugasBK.absen.absenSchema import GetHistoriTinjauanAbsenResponse, StatistikAbsenResponse, GetAbsenByKelasFilterQuery, GetAbsenBySiswaFilterQuery, TinjauAbsenRequest, TinjauAbsenResponse,GetAllKelasTinjauanResponse, GetAbsenByKelasResponse
 from ..domain.schemas.absen_schema import GetAbsenTinjauanResponse, GetAbsenHarianResponse,AbsenWithJadwalMapel
 
+# notification
+from ..domain.petugasBK.notification import notificationService
+from ..domain.schemas.notification_schema import NotificationModelBase, ResponseGetUnreadNotification
+
 # depends
 from ..auth.auth_depends.petugas_BK.depend_auth_petugasBK import petugasBKDependAuth 
 from ..auth.auth_depends.petugas_BK.get_guru_petugasBK_auth import getPetugasBKAuth
@@ -18,6 +22,7 @@ from ..auth.auth_depends.petugas_BK.get_guru_petugasBK_auth import getPetugasBKA
 # common
 from ..domain.schemas.response_schema import ApiResponse
 from ..db.sessionDepedency import sessionDepedency
+from datetime import date
 
 petugasBKRouter = APIRouter(prefix="/petugasBK",dependencies=[Depends(petugasBKDependAuth)])
 
@@ -70,3 +75,21 @@ async def getDetailAbsen(id_absen : int,session : sessionDepedency = None) :
 @petugasBKRouter.patch("/absen/tinjau/{id_absen}",response_model=ApiResponse[TinjauAbsenResponse],tags=["PETUGASBK/ABSEN"])
 async def tinjauAbsen(id_absen : int,body : TinjauAbsenRequest,petugasBK : dict = Depends(getPetugasBKAuth),session : sessionDepedency = None) :
     return await absenService.tinjauAbsen(petugasBK,id_absen,body,session)
+
+
+# notification
+@petugasBKRouter.get("/notification",response_model=ApiResponse[dict[date,list[NotificationModelBase]]],tags=["PETUGASBK/NOTIFICATION"])
+async def getAllNotification(petugasBK : dict = Depends(getPetugasBKAuth),session : sessionDepedency = None) :
+    return await notificationService.getAllNotification(petugasBK["id"],session)
+
+@petugasBKRouter.get("/notification/{id_notification}",response_model=ApiResponse[NotificationModelBase],tags=["PETUGASBK/NOTIFICATION"])
+async def getNotificationById(id_notification : int,petugasBK : dict = Depends(getPetugasBKAuth),session : sessionDepedency = None) :
+    return await notificationService.getNotificationById(id_notification,petugasBK["id"],session)
+
+@petugasBKRouter.post("/notification/read/{id_notification}",response_model=ApiResponse[NotificationModelBase],tags=["PETUGASBK/NOTIFICATION"])
+async def readNotification(id_notification : int,petugasBK : dict = Depends(getPetugasBKAuth),session : sessionDepedency = None) :
+    return await notificationService.readNotification(id_notification,petugasBK["id"],session)
+
+@petugasBKRouter.get("/notification/unread/count",response_model=ApiResponse[ResponseGetUnreadNotification],tags=["PETUGASBK/NOTIFICATION"])
+async def getUnreadNotification(petugasBK : dict = Depends(getPetugasBKAuth),session : sessionDepedency = None) :
+    return await notificationService.getCountNotification(petugasBK["id"],session)

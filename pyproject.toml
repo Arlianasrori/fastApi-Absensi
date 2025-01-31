@@ -29,3 +29,4 @@ psycopg2-binary = "^2.9.9"
 workalendar = {extras = ["asia"], version = "^17.0.0"}
 holidays = "^0.65"
 babel = "^2.16.0"
+firebase-admin = "^6.6.0"

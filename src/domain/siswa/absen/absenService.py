@@ -2,17 +2,18 @@ from collections import defaultdict
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select, and_,or_, extract
 from sqlalchemy.orm import joinedload
-from fastapi import UploadFile
 
 # models 
-from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum
+from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum, StatusTinjauanEnum
 from ....models.jadwal_model import Jadwal
 # schemas
-from .absenSchema import RekapAbsenMingguanResponse, StatusRekapAbsenMIngguanEnum, CekAbsenSiswaTodayResponse, AbsenSiswaRequest, GetAllLaporanAbsenSiswaResponse, GetDetailAbsenSiswaResponse
+from .absenSchema import RekapAbsenMingguanResponse, StatusRekapAbsenMIngguanEnum, CekAbsenSiswaTodayResponse, AbsenSiswaRequest, GetAllLaporanAbsenSiswaResponse, GetDetailAbsenSiswaResponse,AbsenBase
 from ...schemas.absen_schema import AbsenWithDetail
 from ..koordinat_absen.koordinatAbsenSchema import CekRadiusKoordinatRequest
 # service
 from ..koordinat_absen.koordinatAbsenService import cekRadiusKoordinat
+from ...notification_method.notificationService import sendNotificationProccesSync
+from ..notification.notificationService import sendNotificationToBkWalasMapelSync
 # common
 from ....error.errorHandling import HttpException
 from ...common.get_day_today import get_day
@@ -23,7 +24,8 @@ from ....utils.generateId_util import generate_id
 import aiofiles
 from babel import Locale
 from babel.dates import format_date
-
+from multiprocessing import Process
+from copy import deepcopy
 async def getRekapAbsenMingguan(siswa : dict,session : AsyncSession) -> RekapAbsenMingguanResponse :
     day_code_today : dict = await get_day()
 
@@ -120,8 +122,8 @@ async def cekAbsenSiswaToday(siswa : dict,session : AsyncSession) -> CekAbsenSis
                     "jadwal" : jadwalItem
                 }
 
-ABSEN_DOKUMEN_STORE = os.getenv("DEV_LAPORAN_SISWA_STORE")
-ABSEN_DOKUMEN_BASE_URL = os.getenv("DEV_LAPORAN_SISWA_BASE_URL")
+ABSEN_DOKUMEN_STORE = os.getenv("DEV_DOKUMEN_ABSEN_STORE_STORE")
+ABSEN_DOKUMEN_BASE_URL = os.getenv("DEV_DOKUMEN_ABSEN_BASE_URL")
 async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSession) -> AbsenWithDetail :
     cekRadius = await cekRadiusKoordinat(siswa,CekRadiusKoordinatRequest(latitude=body.latitude,longitude=body.longitude),session)
 
@@ -146,7 +148,7 @@ async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSessio
 
     if body.status == StatusAbsenEnum.hadir and ext_file[-1] not in ["jpg","png","jpeg"] :
         raise HttpException(400,f"format file tidak di dukung")
-    elif body.status != StatusAbsenEnum.hadir and ext_file[-1] not in ["pdf","docx","doc","xls","xlsx"] :
+    elif body.status != StatusAbsenEnum.hadir and ext_file[-1] not in ["jpg","png","jpeg","pdf","docx","doc","xls","xlsx"] :
         raise HttpException(400,f"format file tidak di dukung")
 
     file_name = f"{generate_id()}-{body.dokumenFile.filename.split(' ')[0].split(".")[0]}.{ext_file[-1]}"
@@ -164,10 +166,27 @@ async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSessio
             if not body.catatan:
                 raise HttpException(400,"catatan wajib diisi")
             else :
-                absenDetailMapping = {"id" : generate_id(),"id_absen" : absenMapping["id"],"catatan" : body.catatan,"status_tinjauan" : None,"id_peninjau" : None, "tanggal_tinjauan" : None}
+                absenDetailMapping = {"id" : generate_id(),"id_absen" : absenMapping["id"],"catatan" : body.catatan,"status_tinjauan" : StatusTinjauanEnum.belum_ditinjau.value,"id_peninjau" : None, "tanggal_tinjauan" : None}
                 session.add(AbsenDetail(**absenDetailMapping))
 
+        # get id_guru_mapel before commit
+        id_guru_mapel = deepcopy(cekAbsenToday["jadwal"].id_guru_mapel)
         await session.commit()
+
+        # send notification
+        notifMapping = {
+            "id" : generate_id(),
+            "id_siswa" : siswa["id"],
+            "title" : f"Absen {body.status.value}",
+            "body" : f"Kamu telah melakukan absen {body.status.value} hari ini"
+        }
+        proccess = Process(target=sendNotificationProccesSync,args=(notifMapping,))
+        proccess.start()
+
+        if body.status != StatusAbsenEnum.hadir:
+            proccess = Process(target=sendNotificationToBkWalasMapelSync,args=(siswa,id_guru_mapel,body.status.value))
+            proccess.start()
+
         return {
             "msg" : "success",
             "data" : {
@@ -195,6 +214,14 @@ async def getDetailAbsenSiswa(siswa : dict,id_absen : int,session : AsyncSession
 
     if findAbsen is None :
         raise HttpException(404,"Absen tidak ditemukan")
+
+    return {
+        "msg" : "success",
+        "data" : findAbsen
+    }
+
+async def getHistoriAbsenSiswa(siswa : dict,session : AsyncSession) -> list[AbsenBase] :
+    findAbsen = (await session.execute(select(Absen).where(and_(Absen.id_siswa == siswa["id"])).order_by(Absen.tanggal.desc()).limit(3))).scalars().all()
 
     return {
         "msg" : "success",
