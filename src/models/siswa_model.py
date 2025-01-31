@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Boolean,UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum,UniqueConstraint
 
 from sqlalchemy.orm import relationship
 from ..db.db import Base
@@ -62,7 +62,7 @@ class Kelas(Base):
 
     siswa = relationship("Siswa", back_populates="kelas")
     jurusan = relationship("Jurusan",uselist=False, back_populates="kelas")
-    guru_walas = relationship("GuruWalas", back_populates="kelas")
+    guru_walas = relationship("GuruWalas", back_populates="kelas",uselist=False)
     distribusi_petugas_BK = relationship("DistribusiPetugasBK", back_populates="kelas")
     jadwal = relationship("Jadwal", back_populates="kelas")
     koordinat_absen = relationship("KoordinatAbsenKelas",back_populates="kelas")

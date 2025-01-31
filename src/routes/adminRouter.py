@@ -43,26 +43,6 @@ from ..domain.admin.petugas_BK import petugasBKService
 from ..domain.schemas.petugasBK_schema import PetugasBkBase,PetugasBKWithAlamatAndDistribusi
 from ..domain.admin.petugas_BK.petugasBkSchema import AddPetugasBKRequest,UpdatePetugasBKRequest,ResponsePetugasBKPag,AddDistribusiPetugasBKRequest
 
-# laporan siswa
-from ..domain.admin.laporan_siswa import laporanSiswaService
-from ..domain.admin.laporan_siswa.laporanSiswaSchema import FilterLaporanSiswaQuery,ResponseLaporanSiswaPag
-from ..domain.schemas.laporanSiswa_schema import LaporanSiswaDetail
-
-# laporan guru walas
-from ..domain.admin.laporan_guru_walas import laporanGuruWalasService
-from ..domain.admin.laporan_guru_walas.laporanGuruWalasSchema import FilterLaporanGuruWalasQuery,ResponseLaporanGuruWalasPag
-from ..domain.schemas.laporanGuruWalas_schema import LaporanGuruWalasDetail
-
-# laporan guru mapel
-from ..domain.admin.laporan_guru_mapel import laporanGuruMapelService
-from ..domain.admin.laporan_guru_mapel.laporanGuruMapelSchema import FilterLaporanGuruMapelQuery,ResponseLaporanGuruMapelPag
-from ..domain.schemas.laporanGuruMapel_schema import LaporanGuruMapelDetail
-
-# laporan petugasBk
-from ..domain.admin.laporan_petugasBK import laporanPetugasBKService
-from ..domain.admin.laporan_petugasBK.laporanPetugasBKSchema import FilterLaporanPetugasBKQuery,ResponseLaporanPetugasBKPag
-from ..domain.schemas.laporanPetugasBK_schema import LaporanPetugasBKDetail
-
 # jadwal
 from ..domain.admin.jadwal import jadwalService
 from ..domain.schemas.jadwal_schema import JadwalBase,JadwalDetail
@@ -293,43 +273,6 @@ async def addPetugasBKDistribusi(id_petugasBK : int,id_tahun : int,distribusi : 
 @adminRouter.delete("/petugasBK/distribusi/{id_distribusi}",response_model=MessageOnlyResponse,tags=["ADMIN/PETUGAS BK"])
 async def deletePetugasBKDistribusi(id_distribusi : int,admin : dict = Depends(getAdminAuth), session : sessionDepedency = None) :
     return await petugasBKService.deleteDistribusiPetugasBK(id_distribusi,admin["id_sekolah"],session)
-
-# laporan siswa
-@adminRouter.get("/laporanSiswa",response_model=ApiResponse[list[LaporanSiswaDetail] | ResponseLaporanSiswaPag],tags=["ADMIN/LAPORAN SISWA"])
-async def getAllLaporanSiswa(id_tahun : int,page : int | None = None,admin : dict = Depends(getAdminAuth),query : FilterLaporanSiswaQuery  = Depends(), session : sessionDepedency = None) :
-    return await laporanSiswaService.getAllLaporanSiswa(page,admin["id_sekolah"],id_tahun,query,session)
-
-@adminRouter.get("/laporanSiswa/{id}",response_model=ApiResponse[LaporanSiswaDetail],tags=["ADMIN/LAPORAN SISWA"])
-async def getLaporanSiswaByID(id : int,admin : dict = Depends(getAdminAuth),session : sessionDepedency = None) :
-    return await laporanSiswaService.getLaporanById(id,admin["id_sekolah"],session)
-
-# laporan guru walas
-@adminRouter.get("/laporanGuruWalas",response_model=ApiResponse[list[LaporanGuruWalasDetail] | ResponseLaporanGuruWalasPag],tags=["ADMIN/LAPORAN GURU WALAS"])
-async def getAllLaporanGuruWalas(id_tahun : int,page : int | None = None,admin : dict = Depends(getAdminAuth),query : FilterLaporanGuruWalasQuery = Depends(), session : sessionDepedency = None) :
-    return await laporanGuruWalasService.getAllLaporanGuruWalas(page,admin["id_sekolah"],id_tahun,query,session)
-
-@adminRouter.get("/laporanGuruWalas/{id}",response_model=ApiResponse[LaporanGuruWalasDetail],tags=["ADMIN/LAPORAN GURU WALAS"])
-async def getLaporanGuruWalasByID(id : int,admin : dict = Depends(getAdminAuth),session : sessionDepedency = None) :
-    return await laporanGuruWalasService.getLaporanById(id,admin["id_sekolah"],session)
-
-# laporan guru mapel
-@adminRouter.get("/laporanGuruMapel",response_model=ApiResponse[list[LaporanGuruMapelDetail] | ResponseLaporanGuruMapelPag],tags=["ADMIN/LAPORAN GURU MAPEL"])
-async def getAllLaporanGuruMapel(id_tahun : int,page : int | None = None,admin : dict = Depends(getAdminAuth),query : FilterLaporanGuruMapelQuery = Depends(), session : sessionDepedency = None) :
-    return await laporanGuruMapelService.getAllLaporanGuruMapel(page,admin["id_sekolah"],id_tahun,query,session)
-
-@adminRouter.get("/laporanGuruMapel/{id}",response_model=ApiResponse[LaporanGuruMapelDetail],tags=["ADMIN/LAPORAN GURU MAPEL"])
-async def getLaporanGuruMapelByID(id : int,admin : dict = Depends(getAdminAuth),session : sessionDepedency = None) :
-    return await laporanGuruMapelService.getLaporanById(id,admin["id_sekolah"],session)
-
-# laporan petugas BK
-@adminRouter.get("/laporanPetugasBK",response_model=ApiResponse[list[LaporanPetugasBKDetail] | ResponseLaporanPetugasBKPag],tags=["ADMIN/LAPORAN PETUGAS BK"])
-async def getAllLaporanPetugasBK(id_tahun : int,page : int | None = None,admin : dict = Depends(getAdminAuth),query : FilterLaporanPetugasBKQuery = Depends(), session : sessionDepedency = None) :
-    return await laporanPetugasBKService.getAllLaporanPetugasBK(page,admin["id_sekolah"],id_tahun,query,session)
-
-@adminRouter.get("/laporanPetugasBK/{id}",response_model=ApiResponse[LaporanPetugasBKDetail],tags=["ADMIN/LAPORAN PETUGAS BK"])
-async def getLaporanPetugasBKByID(id : int,admin : dict = Depends(getAdminAuth),session : sessionDepedency = None) :
-    return await laporanPetugasBKService.getLaporanById(id,admin["id_sekolah"],session)
-
 
 # jadwal
 

@@ -9,7 +9,7 @@ authors = ["arlianasrori <arlianasrori@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "3.12.1"
+python = "3.12.3"
 fastapi = "^0.111.1"
 python-dotenv = "^1.0.1"
 sqlalchemy = "^2.0.31"

@@ -31,5 +31,5 @@ class GuruMapeldetail(GuruMapelBase) :
     alamat : AlamatBase
     mapel : MapelBase
 
-class GuruMapelDetailWithSekolah(GuruMapelWithAlamat) :
+class GuruMapelDetailWithSekolah(GuruMapeldetail) :
     sekolah : SekolahBase

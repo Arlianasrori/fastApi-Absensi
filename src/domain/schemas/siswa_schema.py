@@ -1,6 +1,6 @@
 from pydantic import BaseModel,EmailStr
 from .alamat_schema import AlamatBase
-from .kelasJurusan_schema import JurusanBase,KelasBase
+from .kelasJurusan_schema import JurusanBase,KelasBase,KelasWithGuruWalas
 from .guruWalas_schema import GuruWalasBase
 from .sekolah_schema import SekolahBase
 class SiswaBase(BaseModel) :
@@ -17,8 +17,7 @@ class SiswaWithKelas(SiswaBase) :
     kelas : KelasBase
     
 class SiswaWithKelasWalas(SiswaBase) :
-    kelas : KelasBase
-    walas : GuruWalasBase | None = None
+    kelas : KelasWithGuruWalas
 
 class SiswaWithAlamat(SiswaBase) :
     alamat : AlamatBase | None = None
