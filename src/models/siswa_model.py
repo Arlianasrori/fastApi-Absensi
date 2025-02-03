@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Boolean,UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum,UniqueConstraint
 
 from sqlalchemy.orm import relationship
 from ..db.db import Base
@@ -31,7 +31,6 @@ class Siswa(Base):
     absen = relationship("Absen", back_populates="siswa")
     sekolah = relationship("Sekolah", back_populates="siswa")
     tahun = relationship("TahunSekolah", back_populates="siswa")
-    laporan = relationship("LaporanSiswa", back_populates="siswa")
 
     __table_args__ = (UniqueConstraint('nis', 'id_sekolah', 'id_tahun', name='_nis_sekolah_tahun_siswa_uc'),)
     

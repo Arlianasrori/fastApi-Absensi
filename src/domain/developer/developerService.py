@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload,subqueryload
 # model
 from ...models.sekolah_model import Sekolah,AlamatSekolah,Admin
-from ..schemas.alamat_schema import AlamatBase,AlamatBody,UpdateAlamatBody
+from ..schemas.alamat_schema import AlamatBody,UpdateAlamatBody
 from ..schemas.sekolah_schema import SekolahBase,SekolahWithAlamat,SekolahDetail,AdminWithSekolah,AdminBase
 from .developerSchema import AddSekolahRequest,AddAdminRequest,UpdateAdminRequest,UpdateSekolahRequest
 
