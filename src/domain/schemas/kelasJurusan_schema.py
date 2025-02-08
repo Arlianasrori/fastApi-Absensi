@@ -8,14 +8,6 @@ class JurusanBase(BaseModel):
     id_sekolah : int
     id_tahun : int
 
-class KelasBase(BaseModel) :
-    id : int
-    nama : str
-    id_jurusan : int
-    
-class KelasWithJumlahSiswa(KelasBase) :
-    jumlah_siswa : int
-
 # so that no circular depedency
 class GuruWalasBase(BaseModel) :
     id : int
@@ -32,6 +24,14 @@ class GuruWalasBase(BaseModel) :
     id_tahun : int
     id_kelas : int
     token_FCM : str | None = None
+    
+class KelasBase(BaseModel) :
+    id : int
+    nama : str
+    id_jurusan : int
+    
+class KelasWithJumlahSiswa(KelasBase) :
+    jumlah_siswa : int
     
 class KelasWithGuruWalas(KelasBase) :
     guru_walas : GuruWalasBase | None

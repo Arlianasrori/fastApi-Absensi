@@ -45,7 +45,7 @@ async def getHistoriTinjauanAbsen(id_petugasBK : int,session : AsyncSession) -> 
 
     id_kelas_distribusi = [distribusi_petugas.id_kelas for distribusi_petugas in findDistribusiPetugasBK]
 
-    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.detail),joinedload(Absen.siswa).joinedload(Siswa.kelas)).where(and_(Absen.siswa.and_(Siswa.id_kelas.in_(id_kelas_distribusi)),Absen.status.in_(liststatusForTinjau),Absen.tanggal == date(2025,1,25))))).scalars().all()
+    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.detail),joinedload(Absen.siswa).joinedload(Siswa.kelas)).where(and_(Absen.siswa.and_(Siswa.id_kelas.in_(id_kelas_distribusi)),Absen.status.in_(liststatusForTinjau),Absen.tanggal == date.today())))).scalars().all()
     
     print(id_kelas_distribusi)
 

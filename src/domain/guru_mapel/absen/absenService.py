@@ -51,7 +51,7 @@ async def getHistoriKelasAjar(guruMapel : dict,session : AsyncSession) -> list[G
             break
         dateQuery = dateNow - datetime.timedelta(days=i)
         dayName = format_date(dateQuery, format="EEEE", locale=locale_id).lower()
-        findJadwal = (await session.execute(select(Jadwal).options(joinedload(Jadwal.kelas)).where(Jadwal.id_guru_mapel == guruMapel["id"],Jadwal.hari == dayName).order_by(Jadwal.hari.asc(),Jadwal.jam_mulai.asc()))).scalars().all()
+        findJadwal = (await session.execute(select(Jadwal).options(joinedload(Jadwal.kelas).joinedload(Kelas.guru_walas)).where(Jadwal.id_guru_mapel == guruMapel["id"],Jadwal.hari == dayName).order_by(Jadwal.hari.asc(),Jadwal.jam_mulai.asc()))).scalars().all()
 
         if len(findJadwal) > 0 :
             for jadwalItem in findJadwal :
@@ -84,7 +84,7 @@ async def getAllAbsenByHistori(guruMapel : dict,query : GetAbsenFilterQuery,sess
     waktu_belajar += jam_selesai - jam_mulai
 
     
-    findSiswa = (await session.execute(select(Siswa).where(Siswa.id_kelas == query.id_kelas).order_by(Siswa.nama.asc()).limit(query.limit).offset((query.offset - 1) * query.limit))).scalars().all()
+    findSiswa = (await session.execute(select(Siswa).options(joinedload(Siswa.kelas).joinedload(Kelas.guru_walas)).where(Siswa.id_kelas == query.id_kelas).order_by(Siswa.nama.asc()).limit(query.limit).offset((query.offset - 1) * query.limit))).scalars().all()
     
     findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa)).where(and_(Absen.siswa.and_(Siswa.id_kelas == query.id_kelas),Absen.tanggal == query.tanggal,Absen.siswa.and_(Siswa.id_kelas == query.id_kelas),Absen.id_jadwal == findJadwal[0].id)))).scalars().all()
 
@@ -102,6 +102,7 @@ async def getAllAbsenByHistori(guruMapel : dict,query : GetAbsenFilterQuery,sess
         "data" : {
             "waktu_belajar" : waktu_belajar,
             "absen" : grouped_absen,
+            "guru_walas" : findSiswa[0].kelas.guru_walas,
             "jumlah_hadir" : len(list(filter(lambda x: x.status == StatusAbsenEnum.hadir, findAbsen))),
             "count_data" : len(findSiswa),
             "count_page" : countPage
@@ -111,7 +112,7 @@ async def getAllAbsenByHistori(guruMapel : dict,query : GetAbsenFilterQuery,sess
 async def getKelasAjar(guruMapel : dict,session : AsyncSession) -> list[KelasBase]:
     findIdKelas = (await session.execute(select(Kelas.id).join(Jadwal).where(Jadwal.id_guru_mapel == guruMapel["id"]))).scalars().all()
 
-    findKelas = (await session.execute(select(Kelas).where(Kelas.id.in_(findIdKelas)))).scalars().all()
+    findKelas = (await session.execute(select(Kelas).options(joinedload(Kelas.guru_walas)).where(Kelas.id.in_(findIdKelas)))).scalars().all()
 
     return {
         "msg" : "success",
@@ -132,7 +133,7 @@ async def getAllAbsenInKelas(guruMapel : dict,query : GetAbsenFilterQuery,sessio
     if findKelas is None :
         raise HttpException(404,f"Kelas tidak ditemukan")
 
-    findSiswa = (await session.execute(select(Siswa).where(Siswa.id_kelas == query.id_kelas).order_by(Siswa.nama.asc()).limit(query.limit).offset((query.offset - 1) * query.limit))).scalars().all()
+    findSiswa = (await session.execute(select(Siswa).options(joinedload(Siswa.kelas).joinedload(Kelas.guru_walas)).where(Siswa.id_kelas == query.id_kelas).order_by(Siswa.nama.asc()).limit(query.limit).offset((query.offset - 1) * query.limit))).scalars().all()
     
     findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.siswa)).where(and_(Absen.siswa.and_(Siswa.id_kelas == query.id_kelas),Absen.tanggal == query.tanggal,Absen.siswa.and_(Siswa.id_kelas == query.id_kelas),Absen.id_jadwal == findJadwal[0].id)))).scalars().all()
 
@@ -151,7 +152,8 @@ async def getAllAbsenInKelas(guruMapel : dict,query : GetAbsenFilterQuery,sessio
             "absen" : grouped_absen,
             "jumlah_siswa" : len(findKelas.siswa),
             "count_data" : len(findSiswa),
-            "count_page" : countPage
+            "count_page" : countPage,
+            "guru_walas" : findSiswa[0].kelas.guru_walas
         }
     }
 

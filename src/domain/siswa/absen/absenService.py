@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 from fastapi import UploadFile
 
 # models 
-from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum
+from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum, StatusTinjauanEnum
 from ....models.jadwal_model import Jadwal
 # schemas
 from .absenSchema import RekapAbsenMingguanResponse, StatusRekapAbsenMIngguanEnum, CekAbsenSiswaTodayResponse, AbsenSiswaRequest, GetAllLaporanAbsenSiswaResponse, GetDetailAbsenSiswaResponse
@@ -70,7 +70,7 @@ async def getRekapAbsenMingguan(siswa : dict,session : AsyncSession) -> RekapAbs
         }
     }
 
-async def cekAbsenSiswaToday(siswa : dict,session : AsyncSession) -> CekAbsenSiswaTodayResponse :
+async def cekAbsenSiswaToday(siswa : dict,latitude : float,longitude : float, session : AsyncSession) -> CekAbsenSiswaTodayResponse :
     dayNow = await get_day()
 
     findJadwal = (await session.execute(select(Jadwal).where(and_(Jadwal.id_kelas == siswa["id_kelas"],Jadwal.id_tahun == siswa["id_tahun"],Jadwal.hari == dayNow["day_name"])))).scalars().all()
@@ -82,7 +82,6 @@ async def cekAbsenSiswaToday(siswa : dict,session : AsyncSession) -> CekAbsenSis
                 "avaliableAbsen" : False
             }
         }
-        
     
     dateNow = datetime.now().date()
 
@@ -103,21 +102,42 @@ async def cekAbsenSiswaToday(siswa : dict,session : AsyncSession) -> CekAbsenSis
         }
     else :
         timeNow = datetime.now().time()
-        for jadwalItem in findJadwal :
-            if not (timeNow >= jadwalItem.jam_mulai and timeNow <= jadwalItem.jam_selesai) :
-                return {
+        jadwalNow = list(filter(lambda jadwalItem: timeNow >= jadwalItem.jam_mulai and timeNow <= jadwalItem.jam_selesai, findJadwal))  
+        
+        
+        if len(jadwalNow) == 0 :
+            return {
                     "msg" : "Tidak ada jadwal tersedia sekarang",
                     "data" : {
                         "avaliableAbsen" : False
                     }
                 }
-            else :
+        else :
+            findAbsenNow = (await session.execute(select(Absen).where(and_(Absen.id_siswa == siswa["id"],Absen.tanggal == datetime.now().date(),Absen.jam >= jadwalNow[0].jam_mulai,Absen.jam <= jadwalNow[0].jam_selesai)))).scalar_one_or_none()
+        
+            if findAbsenNow :
                 return {
+                        "msg" : "Kamu sudah melakukan absen",
+                        "data" : {
+                            "avaliableAbsen" : False
+                        }
+                    }
+            cekRadius = await cekRadiusKoordinat(siswa,CekRadiusKoordinatRequest(latitude=latitude,longitude=longitude),session)
+
+            if not cekRadius["data"]["insideRadius"] :
+                return {
+                    "msg" : "Anda berada di luar radius, silahkan melakukan absen izin atau sakit",
+                    "data" : {
+                        "avaliableAbsen" : True
+                    },
+                    "jadwal" : jadwalNow[0]
+                }
+            return {
                     "msg" : "Tidak ada hari libur hari ini",
                     "data" : {
                         "avaliableAbsen" : True
                     },
-                    "jadwal" : jadwalItem
+                    "jadwal" : jadwalNow[0]
                 }
 
 ABSEN_DOKUMEN_STORE = os.getenv("DEV_LAPORAN_SISWA_STORE")
@@ -128,7 +148,7 @@ async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSessio
     if not cekRadius["data"]["insideRadius"] and body.status not in [StatusAbsenEnum.izin,StatusAbsenEnum.sakit,StatusAbsenEnum.dispen,StatusAbsenEnum.izin_telat]:
         raise HttpException(400,"anda berada diluar radius absen")
     
-    cekAbsenToday = await cekAbsenSiswaToday(siswa,session)
+    cekAbsenToday = await cekAbsenSiswaToday(siswa,body.latitude,body.longitude,session)
 
     if not cekAbsenToday["data"]["avaliableAbsen"] :
         raise HttpException(400,cekAbsenToday["msg"])
@@ -141,12 +161,12 @@ async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSessio
     if findAbsenNow :
         raise HttpException(400,"anda sudah absen hari ini")
     
-
+    print(body.dokumenFile.filename)
     ext_file = body.dokumenFile.filename.split(".")
-
-    if body.status == StatusAbsenEnum.hadir and ext_file[-1] not in ["jpg","png","jpeg"] :
+    print(ext_file[-1])
+    if body.status == StatusAbsenEnum.hadir and ext_file[-1].lower() not in ["jpg","png","jpeg"] :
         raise HttpException(400,f"format file tidak di dukung")
-    elif body.status != StatusAbsenEnum.hadir and ext_file[-1] not in ["pdf","docx","doc","xls","xlsx"] :
+    elif body.status != StatusAbsenEnum.hadir and ext_file[-1].lower()  not in ["jpg","png","jpeg","pdf","docx","doc"] :
         raise HttpException(400,f"format file tidak di dukung")
 
     file_name = f"{generate_id()}-{body.dokumenFile.filename.split(' ')[0].split(".")[0]}.{ext_file[-1]}"
@@ -164,7 +184,7 @@ async def absenSiswa(siswa : dict,body : AbsenSiswaRequest,session : AsyncSessio
             if not body.catatan:
                 raise HttpException(400,"catatan wajib diisi")
             else :
-                absenDetailMapping = {"id" : generate_id(),"id_absen" : absenMapping["id"],"catatan" : body.catatan,"status_tinjauan" : None,"id_peninjau" : None, "tanggal_tinjauan" : None}
+                absenDetailMapping = {"id" : generate_id(),"id_absen" : absenMapping["id"],"catatan" : body.catatan,"status_tinjauan" : StatusTinjauanEnum.belum_ditinjau.value,"id_peninjau" : None, "tanggal_tinjauan" : None}
                 session.add(AbsenDetail(**absenDetailMapping))
 
         await session.commit()

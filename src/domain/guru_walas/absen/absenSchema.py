@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from ...schemas.pagination_schema import PaginationBase
 from ...schemas.absen_schema import AbsenBase
 from ...schemas.siswa_schema import SiswaBase
+from ...schemas.mapel_schema import MapelBase
 # from ....models.absen_model import StatusAbsenEnum , StatusTinjauanEnum
 # from ...schemas.guruWalas_schema import GuruWalasBase
 # from ...schemas.absen_schema import AbsenWithSiswaKelas,AbsenBase
@@ -15,7 +16,7 @@ class GetAbsenFilterQuery(BaseModel) :
     offset : int = 1
 
 class GetAbsenInKelasResponse(PaginationBase) :
-    absen : dict[str,dict[int , AbsenBase]]
+    absen : dict[str,dict[int , AbsenBase | None]]
     
 class GetAbsenBySiswaFilterQuery(BaseModel) :
     tanggal : date 
@@ -34,3 +35,7 @@ class GetStatistikAbsenResponse(BaseModel) :
     jumlah_siswa : int
     jumlah_absen_hadir : int
     jumlah_absen_tanpa_keterangan : int
+
+class GetAllLaporanAbsenSiswaResponse(BaseModel) :
+    absen : AbsenBase
+    mapel : MapelBase

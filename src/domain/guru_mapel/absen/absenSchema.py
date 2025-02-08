@@ -4,7 +4,7 @@ from ...schemas.absen_schema import AbsenBase
 from ...schemas.kelasJurusan_schema import KelasWithGuruWalas, KelasBase
 from ...schemas.siswa_schema import SiswaBase
 # from ....models.absen_model import StatusAbsenEnum , StatusTinjauanEnum
-# from ...schemas.guruWalas_schema import GuruWalasBase
+from ...schemas.guruWalas_schema import GuruWalasBase
 # from ...schemas.absen_schema import AbsenWithSiswaKelas,AbsenBase
 # from ...schemas.kelasJurusan_schema import KelasWithGuruWalas
 from datetime import date
@@ -28,13 +28,15 @@ class GetHistoriAbsenKelasResponse(PaginationBase) :
     waktu_belajar : int
     absen : list[HistoriAbsenResponse]
     jumlah_hadir : int
+    guru_walas : GuruWalasBase | None
 
 class GetAbsenAbsenInKelasResponse(PaginationBase) :
     absen : list[HistoriAbsenResponse]
     jumlah_siswa : int
+    guru_walas : GuruWalasBase | None
 
 class GetHistoriKelasAjarResponse(BaseModel) :
-    kelas : KelasBase
+    kelas : KelasWithGuruWalas
     jumlah_hadir : int
     tanggal : date
 # class GetAbsenInKelasResponse(PaginationBase) :

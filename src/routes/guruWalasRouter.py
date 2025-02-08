@@ -6,7 +6,7 @@ from ..domain.schemas.guruWalas_schema import GuruWalasBase, GuruWalasDetailWith
 
 # absen
 from ..domain.guru_walas.absen import absenService
-from ..domain.guru_walas.absen.absenSchema import GetAbsenBySiswaFilterQuery, GetAbsenFilterQuery, GetAbsenInKelasResponse, GetAbsenByJadwalResponse, GetStatistikAbsenResponse
+from ..domain.guru_walas.absen.absenSchema import GetAbsenBySiswaFilterQuery, GetAbsenFilterQuery, GetAbsenInKelasResponse, GetAbsenByJadwalResponse, GetStatistikAbsenResponse, GetAllLaporanAbsenSiswaResponse
 from ..domain.schemas.absen_schema import AbsenWithJadwalMapel, AbsenBase, GetAbsenHarianResponse
 from ..domain.schemas.jadwal_schema import JadwalWithMapelGuruMapel
 
@@ -51,9 +51,9 @@ async def getAbsenBySiswa(query : GetAbsenBySiswaFilterQuery = Depends(),session
 async def getDetailAbsen(id_absen : int,session : sessionDepedency = None) :
     return await absenService.getDetailAbsenHarian(id_absen,session)
 
-@guruWalasRouter.get("/absen/tanggalContainsAbsen",response_model=ApiResponse[list[date]],tags=["GURUWALAS/ABSEN"])
+@guruWalasRouter.get("/absen/laporan",response_model=ApiResponse[dict[date,list[GetAllLaporanAbsenSiswaResponse] | None]],tags=["GURUWALAS/ABSEN"])
 async def getTanggalContainsAbsen(month : int,guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :
-    return await absenService.getAllTanggalContainsAbsen(guruWalas,month,session)
+    return await absenService.getAllLaporanAbsen(guruWalas,month,session)
 
 @guruWalasRouter.get("/jadwal",response_model=ApiResponse[list[JadwalWithMapelGuruMapel]],tags=["GURUWALAS/ABSEN"])
 async def getJadwalByTanggal(tanggal : date,guruWalas : dict = Depends(getWalasAuth),session : sessionDepedency = None) :

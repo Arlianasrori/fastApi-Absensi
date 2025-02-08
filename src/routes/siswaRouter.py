@@ -70,8 +70,8 @@ async def getRekapAbsenMingguan(siswa : dict = Depends(getSiswaAuth),session : s
     return await absenService.getRekapAbsenMingguan(siswa,session)
 
 @siswaRouter.get("/absen/cekAbsen",response_model=ApiResponse[CekAbsenSiswaTodayResponse],tags=["SISWA/ABSEN"])
-async def cekAbsenToday(siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
-    return await absenService.cekAbsenSiswaToday(siswa,session)
+async def cekAbsenToday(latitude : float, longitude : float, siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :
+    return await absenService.cekAbsenSiswaToday(siswa,latitude,longitude,session)
 
 @siswaRouter.post("/absen",response_model=ApiResponse[AbsenWithDetail],tags=["SISWA/ABSEN"])
 async def absen(body : AbsenSiswaRequest = Depends(AbsenSiswaRequest.as_form),siswa : dict = Depends(getSiswaAuth),session : sessionDepedency = None) :

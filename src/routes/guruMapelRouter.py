@@ -7,7 +7,7 @@ from ..domain.schemas.guruMapel_schema import GuruMapelBase, GuruMapelDetailWith
 # absen
 from ..domain.guru_mapel.absen import absenService
 from ..domain.guru_mapel.absen.absenSchema import GetAbsenFilterQuery, GetHistoriAbsenKelasResponse, GetAbsenAbsenInKelasResponse, GetStatistikKelasAbsenResponse, GetHistoriKelasAjarResponse
-from ..domain.schemas.kelasJurusan_schema import KelasBase
+from ..domain.schemas.kelasJurusan_schema import KelasWithGuruWalas
 from ..domain.schemas.absen_schema import GetAbsenHarianResponse
 
 # depends
@@ -50,6 +50,6 @@ async def getDetailAbsenHarian(id_absen : int,session : sessionDepedency = None)
 async def getAbsenInKelas(query : GetAbsenFilterQuery = Depends(),guruMapel : dict = Depends(getMapelAuth),session : sessionDepedency = None) :
     return await absenService.getAllAbsenInKelas(guruMapel,query,session)
 
-@guruMapelRouter.get("/kelas-ajar",response_model=ApiResponse[list[KelasBase]],tags=["GURUMAPEL/ABSEN"])
+@guruMapelRouter.get("/kelas-ajar",response_model=ApiResponse[list[KelasWithGuruWalas]],tags=["GURUMAPEL/ABSEN"])
 async def getKelasAjar(guruMapel : dict = Depends(getMapelAuth),session : sessionDepedency = None) :
     return await absenService.getKelasAjar(guruMapel,session)

@@ -7,7 +7,7 @@ from ....models.absen_model import Absen, AbsenDetail, StatusAbsenEnum
 from ....models.siswa_model import  Siswa
 from ....models.jadwal_model import Jadwal
 # schemas
-from .absenSchema import GetAbsenFilterQuery, GetAbsenBySiswaFilterQuery, GetAbsenInKelasResponse, GetAbsenByJadwalResponse, GetStatistikAbsenResponse
+from .absenSchema import GetAbsenFilterQuery, GetAbsenBySiswaFilterQuery, GetAbsenInKelasResponse, GetAbsenByJadwalResponse, GetStatistikAbsenResponse, GetAllLaporanAbsenSiswaResponse
 from ...schemas.absen_schema import AbsenBase, GetAbsenHarianResponse,AbsenWithJadwalMapel
 from ...schemas.jadwal_schema import JadwalWithMapelGuruMapel
 # common
@@ -16,6 +16,7 @@ from datetime import date
 import math
 from babel import Locale
 from babel.dates import format_date
+from collections import defaultdict
 
 
 async def getStatistikAbsen(walas : dict,session : AsyncSession) -> GetStatistikAbsenResponse :
@@ -101,13 +102,23 @@ async def getDetailAbsenHarian(id_absen : int,session : AsyncSession) -> GetAbse
         "data" : findAbsen
     }
 
-async def getAllTanggalContainsAbsen(walas : dict,month : int,session : AsyncSession) -> list[date] :
-    findAbsenTanggal = (await session.execute(select(Absen.tanggal).where(Absen.siswa.and_(Siswa.id_kelas == walas["id_kelas"])).where(extract("month",Absen.tanggal) == month))).scalars().all()
+async def getAllLaporanAbsen(walas : dict,month : int,session : AsyncSession) -> dict[date,list[GetAllLaporanAbsenSiswaResponse] | None] :
+    findAbsen = (await session.execute(select(Absen).options(joinedload(Absen.jadwal).joinedload(Jadwal.mapel)).where(and_(Absen.siswa.and_(Siswa.id_kelas == walas["id_kelas"]),extract("month",Absen.tanggal) == month)).order_by(Absen.tanggal.desc()))).scalars().all()
 
+    absenResponse = defaultdict(list)
+
+    for absen in findAbsen :
+        absenResponse[absen.tanggal].append({
+            "absen" : absen,
+            "mapel" : absen.jadwal.mapel
+        })
+
+    print(absenResponse)
     return {
         "msg" : "success",
-        "data" : set([tanggal for tanggal in findAbsenTanggal])
+        "data" : absenResponse
     }
+    
 
 async def getJadwalByTanggal(walas : dict,tanggal : date,session : AsyncSession) -> list[JadwalWithMapelGuruMapel] :
     locale_id = Locale('id', 'ID')
